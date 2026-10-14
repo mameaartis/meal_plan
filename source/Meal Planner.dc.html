@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="ext-resource-dependency" content="lib/engine.js" data-resource-id="libEngine">
+<meta name="ext-resource-dependency" content="lib/data.js" data-resource-id="libData">
+<meta name="ext-resource-dependency" content="lib/store.js" data-resource-id="libStore">
+<meta name="ext-resource-dependency" content="lib/tests.js" data-resource-id="libTests">
+<meta name="ext-resource-dependency" content="lib/importer.js" data-resource-id="libImporter">
+<meta name="ext-resource-dependency" content="lib/vendor/pdf-parse.es.js" data-resource-id="pdfLib">
+<meta name="ext-resource-dependency" content="lib/vendor/pdf.worker.min.mjs" data-resource-id="pdfWorker">
+<template id="__bundler_thumbnail" data-bg-color="#fbfbf9"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#fbfbf9"></rect><circle cx="50" cy="50" r="20" fill="none" stroke="#1e1c1c" stroke-width="5"></circle><path d="M50 36v14l9 6" fill="none" stroke="#1e1c1c" stroke-width="5" stroke-linecap="round"></path></svg></template>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#fbfbf9}
+a{color:#1e1c1c;text-decoration:underline}
+a:hover{color:#3f3a3a}
+input,select,textarea,button{font-family:inherit;font-size:inherit;color:inherit}
+@media (max-width:860px){input,select,textarea{font-size:16px !important}main button{min-height:38px}}
+html{-webkit-text-size-adjust:100%}
+button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid #1e1c1c;outline-offset:2px}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;background:var(--cui-bg-normal);color:var(--cui-fg-normal);font-family:var(--cui-font-stack-default);font-weight:375;font-size:16px;line-height:1.4">
+
+<sc-if value="{{ notReady }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:48px;color:var(--cui-fg-subtle)">{{ loadingText }}</div>
+</sc-if>
+
+<sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}">
+
+<sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+<aside style="width:240px;flex-shrink:0;border-right:1px solid var(--cui-border-subtle);padding:24px 16px;display:flex;flex-direction:column;gap:24px;position:sticky;top:0;height:100vh">
+  <div style="display:flex;flex-direction:column;gap:2px;padding:0 8px">
+    <div style="font-family:var(--cui-font-stack-display);font-size:22px;line-height:1">Meal planner</div>
+    <div style="font-size:14px;color:var(--cui-fg-subtle)">GF · DF · SF · high protein</div>
+  </div>
+  <nav style="display:flex;flex-direction:column;gap:4px">
+    <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+      <button onClick="{{ n.onClick }}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:none;cursor:pointer;padding:10px 12px;border-radius:12px;font-size:16px;font-weight:550;background:{{ n.bg }};color:{{ n.fg }}" style-hover="opacity:0.9">{{ n.label }}<span style="font-size:13px;font-weight:550;color:{{ n.badgeFg }}">{{ n.badge }}</span></button>
+    </sc-for>
+  </nav>
+  <div onClick="{{ goFodmap }}" style="cursor:pointer;background:var(--cui-bg-promo);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:4px">
+    <div style="font-size:12px;font-weight:650;letter-spacing:0.04em;text-transform:uppercase;color:var(--cui-fg-promo)">{{ phaseCard.kicker }}</div>
+    <div style="font-weight:650;font-size:16px">{{ phaseCard.title }}</div>
+    <div style="font-size:14px;color:var(--cui-fg-subtle)">{{ phaseCard.sub }}</div>
+  </div>
+  <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px">
+    <button onClick="{{ goReview }}" style="text-align:left;border:none;cursor:pointer;padding:8px 12px;border-radius:12px;font-size:14px;font-weight:550;background:{{ syncVm.bg }};color:{{ syncVm.fg }}">{{ syncVm.short }}<span style="display:block;font-size:12px;font-weight:375;color:var(--cui-fg-subtle)">{{ syncVm.email }}</span></button>
+    <button onClick="{{ goReview }}" style="text-align:left;border:none;cursor:pointer;padding:10px 12px;border-radius:12px;font-size:15px;font-weight:550;background:{{ reviewNav.bg }};color:{{ reviewNav.fg }}">Data review<span style="display:block;font-size:13px;font-weight:375;color:var(--cui-fg-subtle)">{{ reviewNav.sub }}</span></button>
+  </div>
+</aside>
+</sc-if>
+
+<main style="flex:1;min-width:0;display:flex;flex-direction:column">
+<sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
+  <header style="position:sticky;top:0;z-index:5;background:var(--cui-bg-normal);border-bottom:1px solid var(--cui-border-subtle);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div style="font-family:var(--cui-font-stack-display);font-size:19px">Meal planner</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onClick="{{ goFodmap }}" style="border:none;cursor:pointer;background:var(--cui-bg-promo);color:var(--cui-fg-promo);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:650">{{ phaseCard.short }}</button>
+      <button onClick="{{ goReview }}" style="border:none;cursor:pointer;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:550;background:{{ syncVm.bg }};color:{{ syncVm.fg }}">{{ syncVm.short }}</button>
+    </div>
+  </header>
+</sc-if>
+
+<div style="width:100%;max-width:1240px;margin:0 auto;padding:{{ pad }};display:flex;flex-direction:column;gap:24px">
+
+<!-- ================= DISCOVER ================= -->
+<sc-if value="{{ isDiscover }}" hint-placeholder-val="{{ true }}">
+<section data-screen-label="Discover" style="display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <h1 style="margin:0;font-family:var(--cui-font-stack-display);font-weight:bold;font-size:clamp(30px,4.4vw,48px);line-height:0.95;text-wrap:balance">What can I cook with what I have?</h1>
+    <p style="margin:0;color:var(--cui-fg-subtle);font-size:17px;text-wrap:pretty">{{ disc.subline }}</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <label style="display:inline-flex;align-items:center;gap:8px;border:1px solid var(--cui-border-strong);cursor:pointer;border-radius:999px;padding:8px 16px;font-weight:550;font-size:15px;background:var(--cui-bg-normal)"><img src="icons/add.svg" alt="" style="width:18px;height:18px">Add meals from a PDF<input type="file" accept="application/pdf,.pdf" onChange="{{ onPdf }}" style="display:none"></label>
+      <span style="font-size:13px;color:var(--cui-fg-subtle)">Reads meal plans in the same layout as your dietitian’s.</span>
+    </div>
+  </div>
+
+  <sc-if value="{{ imVm.has }}" hint-placeholder-val="{{ false }}">
+  <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px;border:1px solid var(--cui-border-strong)">
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:13px;font-weight:650;text-transform:uppercase;letter-spacing:0.04em;color:var(--cui-fg-subtle)">Import from PDF</span><b style="font-size:18px;word-break:break-word">{{ imVm.file }}</b></div>
+      <button onClick="{{ imVm.onCancel }}" aria-label="Cancel import" style="border:none;background:var(--cui-bg-normal);border-radius:999px;width:36px;height:36px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center"><img src="icons/close.svg" alt="" style="width:18px;height:18px"></button>
+    </div>
+    <sc-if value="{{ imVm.busy }}" hint-placeholder-val="{{ false }}"><span style="color:var(--cui-fg-subtle)">Reading the PDF and finding meals…</span></sc-if>
+    <sc-if value="{{ imVm.hasErr }}" hint-placeholder-val="{{ false }}"><div role="alert" style="border-radius:12px;padding:10px 12px;font-size:14px;background:var(--cui-bg-danger);color:var(--cui-fg-danger)">{{ imVm.err }}</div></sc-if>
+    <sc-if value="{{ imVm.ready }}" hint-placeholder-val="{{ false }}">
+      <span style="font-size:15px">{{ imVm.summary }}</span>
+      <sc-if value="{{ imVm.empty }}" hint-placeholder-val="{{ false }}"><div style="border-radius:12px;padding:10px 12px;font-size:14px;background:var(--cui-bg-warning);color:var(--cui-fg-warning)">No meals found. This reader expects day pages with headers like “OBIAD 12:00 E: 600 kcal B: 32 g…”.</div></sc-if>
+      <sc-if value="{{ imVm.hasWarn }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:4px;border-radius:12px;padding:10px 12px;font-size:14px;background:var(--cui-bg-warning);color:var(--cui-fg-warning)"><sc-for list="{{ imVm.warnings }}" as="w" hint-placeholder-count="1"><span>{{ w }}</span></sc-for></div></sc-if>
+      <label style="display:flex;gap:8px;align-items:center;font-size:15px;font-weight:550;flex-wrap:wrap">Plan name <input value="{{ imVm.name }}" onChange="{{ imVm.onName }}" style="flex:1;min-width:160px;max-width:320px;padding:8px 12px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal);font-weight:375"></label>
+      <div style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow:auto">
+        <sc-for list="{{ imVm.rows }}" as="r" hint-placeholder-count="4">
+          <label style="display:flex;gap:10px;align-items:flex-start;background:var(--cui-bg-normal);border-radius:12px;padding:10px 12px;cursor:pointer">
+            <input type="checkbox" checked="{{ r.checked }}" onChange="{{ r.onToggle }}" style="width:20px;height:20px;margin-top:2px;accent-color:#1e1c1c;flex-shrink:0">
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;opacity:{{ r.opacity }}">
+              <span style="font-size:12px;font-weight:650;color:var(--cui-fg-subtle);text-transform:uppercase;letter-spacing:0.04em">{{ r.day }}</span>
+              <span style="font-weight:550">{{ r.name }}</span>
+              <span style="font-size:13px">{{ r.meta }}</span>
+              <span style="font-size:12px;color:var(--cui-fg-subtle)">{{ r.ings }}</span>
+            </div>
+          </label>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button onClick="{{ imVm.onSave }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550;opacity:{{ imVm.saveOpacity }}">{{ imVm.saveLabel }}</button>
+        <span style="font-size:13px;color:var(--cui-fg-subtle)">Names and methods stay in the original language. Each imported meal is marked “imported — check against the PDF”.</span>
+      </div>
+    </sc-if>
+  </div>
+  </sc-if>
+  <sc-if value="{{ disc.hasChallenge }}" hint-placeholder-val="{{ false }}">
+    <div style="background:var(--cui-bg-promo);border-radius:16px;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between">
+      <div style="font-size:15px"><span style="font-weight:650;color:var(--cui-fg-promo)">Challenge week · </span>{{ disc.challengeText }}</div>
+      <button onClick="{{ goFodmap }}" style="border:1px solid var(--cui-border-promo);background:transparent;color:var(--cui-fg-promo);border-radius:999px;padding:6px 14px;font-weight:550;cursor:pointer;font-size:14px">Open journey</button>
+    </div>
+  </sc-if>
+  <div style="display:flex;flex-wrap:wrap;gap:8px">
+    <sc-for list="{{ disc.modes }}" as="m" hint-placeholder-count="3">
+      <button onClick="{{ m.onClick }}" style="border:1px solid {{ m.border }};cursor:pointer;border-radius:999px;padding:10px 18px;font-size:16px;font-weight:550;background:{{ m.bg }};color:{{ m.fg }};display:flex;gap:8px;align-items:center">{{ m.label }}<span style="font-size:14px;opacity:0.75">{{ m.count }}</span></button>
+    </sc-for>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+    <div style="display:flex;gap:4px;background:var(--cui-bg-subtle);border-radius:999px;padding:4px;flex-wrap:wrap">
+      <sc-for list="{{ disc.slots }}" as="s" hint-placeholder-count="4">
+        <button onClick="{{ s.onClick }}" style="border:none;cursor:pointer;border-radius:999px;padding:7px 14px;font-size:15px;font-weight:550;background:{{ s.bg }};color:{{ s.fg }}">{{ s.label }}</button>
+      </sc-for>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex:1 1 320px;justify-content:flex-end">
+      <div style="position:relative;display:flex;align-items:center;flex:1 1 200px;max-width:280px">
+        <img src="icons/search.svg" alt="" style="position:absolute;left:10px;width:18px;height:18px;opacity:0.6">
+        <input type="search" value="{{ q }}" onChange="{{ onQ }}" placeholder="Meal or ingredient" style="width:100%;min-width:0;padding:9px 12px 9px 34px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+      </div>
+      <select value="{{ sortStr }}" onChange="{{ onSort }}" aria-label="Sort" style="padding:9px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)"><option value="az">A–Z</option><option value="best">Best match</option></select>
+      <select value="{{ maxTimeStr }}" onChange="{{ onMaxTime }}" style="padding:9px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+        <option value="0">Any time</option><option value="15">≤ 15 min</option><option value="30">≤ 30 min</option><option value="45">≤ 45 min</option><option value="60">≤ 60 min</option>
+      </select>
+      <select value="{{ minProteinStr }}" onChange="{{ onMinProtein }}" style="padding:9px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+        <option value="0">Any protein</option><option value="20">≥ 20 g protein</option><option value="30">≥ 30 g protein</option><option value="40">≥ 40 g protein</option><option value="50">≥ 50 g protein</option>
+      </select>
+      <label style="display:flex;gap:6px;align-items:center;font-size:15px;cursor:pointer;padding:0 4px"><input type="checkbox" checked="{{ dietOnly }}" onChange="{{ onDietOnly }}" style="width:18px;height:18px;accent-color:#1e1c1c">Fits my diet only</label>
+    </div>
+  </div>
+  <sc-if value="{{ disc.timeNote }}" hint-placeholder-val="{{ false }}">
+    <div style="font-size:14px;color:var(--cui-fg-warning);background:var(--cui-bg-warning);border-radius:12px;padding:10px 14px">Your documents don’t give preparation times. This filter only shows meals where you’ve entered your own estimate ({{ disc.timedCount }} so far) — add one from a meal’s details.</div>
+  </sc-if>
+  <div style="font-size:14px;color:var(--cui-fg-subtle)">{{ disc.resultLine }}</div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px">
+    <sc-for list="{{ disc.cards }}" as="c" hint-placeholder-count="6">
+      <article style="background:var(--cui-bg-subtle);border-radius:20px;overflow:hidden;display:flex;flex-direction:column">
+        <div onClick="{{ c.onOpen }}" style="cursor:pointer;aspect-ratio:16/9;background:repeating-linear-gradient(135deg,#efede5 0 10px,#e8e6dc 10px 20px);position:relative;display:flex;align-items:flex-end;justify-content:space-between;padding:10px 12px">
+          {{ c.photoEl }}
+          <span style="position:relative;background:var(--cui-bg-normal);border-radius:999px;padding:3px 10px;font-size:13px;font-weight:550">{{ c.slotLabel }}</span>
+          <span style="position:relative;background:var(--cui-bg-normal);border-radius:999px;padding:3px 8px;font-size:11px;color:var(--cui-fg-subtle)">AI preview</span>
+        </div>
+        <div style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;flex:1">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <h3 onClick="{{ c.onOpen }}" style="cursor:pointer;margin:0;font-size:18px;line-height:1.2;font-weight:650;text-wrap:pretty">{{ c.name }}</h3>
+            <div style="font-size:13px;color:var(--cui-fg-subtle);text-wrap:pretty">{{ c.namePl }}</div>
+          </div>
+          <div style="display:flex;gap:12px;font-size:14px;flex-wrap:wrap">
+            <span><b>{{ c.protein }}</b> protein</span><span>{{ c.kcal }}</span><span style="color:{{ c.timeFg }}">{{ c.time }}</span>
+          </div>
+          <div style="font-size:14px;color:var(--cui-fg-subtle)">{{ c.keyIngr }}</div>
+          <div style="display:flex;flex-direction:column;gap:3px;font-size:14px">
+            <div style="color:var(--cui-fg-success)">{{ c.haveText }}</div>
+            <div style="color:{{ c.missingFg }}">{{ c.missingText }}</div>
+          </div>
+          <div style="font-size:13px;line-height:1.35;border-top:1px solid var(--cui-border-subtle);padding-top:8px"><span style="font-weight:650">Why: </span>{{ c.reason }}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span style="font-size:12px;font-weight:650;padding:3px 9px;border-radius:999px;background:{{ c.dietBg }};color:{{ c.dietFg }}">{{ c.dietLabel }}</span>
+            <span style="font-size:12px;font-weight:650;padding:3px 9px;border-radius:999px;background:{{ c.fodBg }};color:{{ c.fodFg }}">{{ c.fodLabel }}</span>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:auto;padding-top:4px">
+            <button onClick="{{ c.onOpen }}" style="flex:1;border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:9px 12px;font-weight:550;font-size:15px" style-hover="background:var(--cui-bg-normal-hovered)">Details</button>
+            <button onClick="{{ c.onAdd }}" style="flex:1;border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:9px 12px;font-weight:550;font-size:15px" style-hover="background:var(--cui-bg-strong-hovered)">Add to plan</button>
+          </div>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+  <sc-if value="{{ disc.empty }}" hint-placeholder-val="{{ false }}">
+    <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px;align-items:flex-start">
+      <h3 style="margin:0;font-size:21px;font-weight:650">{{ disc.emptyTitle }}</h3>
+      <p style="margin:0;color:var(--cui-fg-subtle)">{{ disc.emptyText }}</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onClick="{{ disc.emptyAction }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550">{{ disc.emptyActionLabel }}</button>
+        <button onClick="{{ goPantry }}" style="border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550">Update my ingredients</button>
+      </div>
+    </div>
+  </sc-if>
+</section>
+</sc-if>
+
+<!-- ================= PANTRY ================= -->
+<sc-if value="{{ isPantry }}" hint-placeholder-val="{{ false }}">
+<section data-screen-label="My ingredients" style="display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <h1 style="margin:0;font-size:33px;line-height:1.05;font-weight:650">My ingredients</h1>
+      <p style="margin:0;color:var(--cui-fg-subtle)">{{ pan.subline }}</p>
+    </div>
+  </div>
+  <sc-if value="{{ pan.hasSample }}" hint-placeholder-val="{{ false }}">
+    <div style="background:var(--cui-bg-warning);color:var(--cui-fg-warning);border-radius:16px;padding:12px 16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;font-size:15px">
+      <div><b>Sample pantry.</b> {{ pan.sampleCount }} items are sample data so you can try the app. They aren’t from your documents.</div>
+      <button onClick="{{ pan.clearSample }}" style="border:1px solid var(--cui-border-warning);background:transparent;color:var(--cui-fg-warning);border-radius:999px;padding:6px 14px;font-weight:550;cursor:pointer">Clear sample items</button>
+    </div>
+  </sc-if>
+
+  <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <h2 style="margin:0;font-size:19px;font-weight:650">Quick add after shopping</h2>
+      <div style="font-size:14px;color:var(--cui-fg-subtle)">One item per line or comma-separated. English or Polish names. Quantities are added to what you already have.</div>
+    </div>
+    <textarea value="{{ quick }}" onChange="{{ onQuick }}" rows="3" placeholder="chicken breast 400 g, marchew 500 g, eggs 6, spinach 100 g" style="width:100%;resize:vertical;padding:12px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal);font-size:16px"></textarea>
+    <sc-if value="{{ pan.hasPreview }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <sc-for list="{{ pan.preview }}" as="p" hint-placeholder-count="2">
+          <span style="font-size:13px;padding:4px 10px;border-radius:999px;background:{{ p.bg }};color:{{ p.fg }}">{{ p.text }}</span>
+        </sc-for>
+      </div>
+    </sc-if>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button onClick="{{ pan.commitQuick }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550;opacity:{{ pan.quickOpacity }}">{{ pan.quickLabel }}</button>
+      <span style="font-size:13px;color:var(--cui-fg-subtle)">Being in your pantry doesn’t make an ingredient FODMAP-safe — meal flags still apply.</span>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <div style="position:relative;display:flex;align-items:center;flex:1 1 200px;max-width:280px">
+      <img src="icons/search.svg" alt="" style="position:absolute;left:10px;width:18px;height:18px;opacity:0.6">
+      <input type="search" value="{{ pantryQ }}" onChange="{{ onPantryQ }}" placeholder="Search pantry" style="width:100%;min-width:0;padding:9px 12px 9px 34px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+    </div>
+    <sc-for list="{{ pan.cats }}" as="c" hint-placeholder-count="5">
+      <button onClick="{{ c.onClick }}" style="border:1px solid {{ c.border }};cursor:pointer;border-radius:999px;padding:6px 12px;font-size:14px;font-weight:550;background:{{ c.bg }};color:{{ c.fg }}">{{ c.label }}</button>
+    </sc-for>
+  </div>
+
+  <div style="display:flex;flex-direction:column;border:1px solid var(--cui-border-subtle);border-radius:16px;overflow:hidden">
+    <sc-for list="{{ pan.rows }}" as="r" hint-placeholder-count="6">
+      <div style="display:grid;grid-template-columns:{{ pan.cols }};gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--cui-border-divider);background:var(--cui-bg-normal)">
+        <div style="min-width:0;display:flex;flex-direction:column;grid-column:{{ pan.nameSpan }}">
+          <span style="font-weight:550">{{ r.name }}</span>
+          <span style="font-size:13px;color:var(--cui-fg-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.sub }}</span>
+        </div>
+        <div style="display:flex;gap:4px;align-items:center">
+          <input type="number" min="0" value="{{ r.qtyStr }}" onChange="{{ r.onQty }}" placeholder="—" aria-label="Quantity" style="width:76px;padding:7px 8px;border:1px solid var(--cui-border-normal);border-radius:10px;background:var(--cui-bg-normal)">
+          <select value="{{ r.unit }}" onChange="{{ r.onUnit }}" aria-label="Unit" style="padding:7px 4px;border:1px solid var(--cui-border-normal);border-radius:10px;background:var(--cui-bg-normal)"><option value="g">g</option><option value="ml">ml</option><option value="pcs">pcs</option></select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <input type="date" value="{{ r.expires }}" onChange="{{ r.onExp }}" aria-label="Expiry date" style="padding:6px 8px;border:1px solid var(--cui-border-normal);border-radius:10px;background:var(--cui-bg-normal);font-size:14px">
+          <span style="font-size:12px;font-weight:650;color:{{ r.freshFg }}">{{ r.freshLabel }}</span>
+        </div>
+        <label style="display:flex;gap:6px;align-items:center;font-size:14px;cursor:pointer"><input type="checkbox" checked="{{ r.staple }}" onChange="{{ r.onStaple }}" style="width:18px;height:18px;accent-color:#1e1c1c">Staple</label>
+        <button onClick="{{ r.onDelete }}" aria-label="Remove" style="border:none;background:transparent;cursor:pointer;border-radius:999px;width:40px;height:40px;display:flex;align-items:center;justify-content:center" style-hover="background:var(--cui-bg-normal-hovered)"><img src="icons/delete.svg" alt="" style="width:20px;height:20px"></button>
+      </div>
+    </sc-for>
+    <sc-if value="{{ pan.empty }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:28px;text-align:center;color:var(--cui-fg-subtle)">{{ pan.emptyText }}</div>
+    </sc-if>
+  </div>
+</section>
+</sc-if>
+
+<!-- ================= PLANNER ================= -->
+<sc-if value="{{ isPlanner }}" hint-placeholder-val="{{ false }}">
+<section data-screen-label="Weekly planner" style="display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <h1 style="margin:0;font-size:33px;line-height:1.05;font-weight:650">Weekly planner</h1>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button onClick="{{ pl.prevWeek }}" aria-label="Previous week" style="border:1px solid var(--cui-border-normal);background:transparent;border-radius:999px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center"><img src="icons/chevron-left.svg" alt="" style="width:18px;height:18px"></button>
+        <span style="font-size:17px;font-weight:550;min-width:170px;text-align:center">{{ pl.weekLabel }}</span>
+        <button onClick="{{ pl.nextWeek }}" aria-label="Next week" style="border:1px solid var(--cui-border-normal);background:transparent;border-radius:999px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center"><img src="icons/chevron-right.svg" alt="" style="width:18px;height:18px"></button>
+      </div>
+    </div>
+    <div style="display:flex;gap:4px;background:var(--cui-bg-subtle);border-radius:999px;padding:4px">
+      <sc-for list="{{ pl.tabs }}" as="t" hint-placeholder-count="2">
+        <button onClick="{{ t.onClick }}" style="border:none;cursor:pointer;border-radius:999px;padding:8px 16px;font-size:15px;font-weight:550;background:{{ t.bg }};color:{{ t.fg }}">{{ t.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <sc-if value="{{ pl.isWeek }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:14px;color:var(--cui-fg-subtle)">Start from</span>
+      <sc-for list="{{ pl.templates }}" as="t" hint-placeholder-count="3">
+        <button onClick="{{ t.onClick }}" title="{{ t.title }}" style="border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:7px 14px;font-size:14px;font-weight:550" style-hover="background:var(--cui-bg-normal-hovered)">{{ t.label }}</button>
+      </sc-for>
+      <button onClick="{{ pl.clearWeek }}" style="border:none;background:transparent;cursor:pointer;border-radius:999px;padding:7px 10px;font-size:14px;color:var(--cui-fg-subtle);text-decoration:underline">Clear week</button>
+      <span style="font-size:13px;color:var(--cui-fg-subtle)">Original plans are never changed.</span>
+    </div>
+    <sc-if value="{{ pl.moving }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);border-radius:14px;padding:10px 14px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;font-size:15px">
+        <span>{{ pl.movingText }}</span>
+        <button onClick="{{ pl.cancelMove }}" style="border:1px solid var(--cui-fg-on-strong-subtle);background:transparent;color:var(--cui-fg-on-strong);border-radius:999px;padding:5px 12px;cursor:pointer">Cancel</button>
+      </div>
+    </sc-if>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+      <sc-for list="{{ pl.days }}" as="d" hint-placeholder-count="7">
+        <div style="display:flex;flex-direction:column;gap:6px;background:{{ d.bg }};border-radius:16px;padding:10px;border:1px solid {{ d.border }}">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:2px 4px">
+            <span style="font-weight:650">{{ d.label }}</span><span style="font-size:13px;color:var(--cui-fg-subtle)">{{ d.date }}</span>
+          </div>
+          <sc-if value="{{ d.hasChallenge }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--cui-bg-promo);color:var(--cui-fg-promo);border-radius:10px;padding:6px 8px;font-size:12px;font-weight:650;line-height:1.3">{{ d.challenge }}</div>
+          </sc-if>
+          <sc-for list="{{ d.slots }}" as="s" hint-placeholder-count="3">
+            <button onClick="{{ s.onClick }}" style="text-align:left;cursor:pointer;border-radius:12px;padding:8px 10px;min-height:76px;display:flex;flex-direction:column;gap:4px;background:{{ s.bg }};border:1px {{ s.borderStyle }} {{ s.border }}" style-hover="border-color:#1e1c1c">
+              <span style="font-size:11px;font-weight:650;letter-spacing:0.04em;text-transform:uppercase;color:var(--cui-fg-subtle)">{{ s.label }}</span>
+              <span style="font-size:14px;line-height:1.25;font-weight:{{ s.weight }};color:{{ s.fg }}">{{ s.name }}</span>
+              <span style="font-size:12px;font-weight:550;color:{{ s.statusFg }}">{{ s.status }}</span>
+            </button>
+          </sc-for>
+          <div style="font-size:12px;color:var(--cui-fg-subtle);padding:0 4px">{{ d.totals }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+      <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px">
+        <h2 style="margin:0;font-size:19px;font-weight:650">Week overview</h2>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+          <sc-for list="{{ pl.stats }}" as="s" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column"><span style="font-family:var(--cui-font-stack-display);font-size:26px;line-height:1.1">{{ s.value }}</span><span style="font-size:13px;color:var(--cui-fg-subtle)">{{ s.label }}</span></div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <h2 style="margin:0;font-size:19px;font-weight:650">Not used this week</h2>
+          <span style="font-size:14px;color:var(--cui-fg-subtle)">Pantry items no planned meal uses. Tap to find meals with them.</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ pl.unused }}" as="u" hint-placeholder-count="4">
+            <button onClick="{{ u.onClick }}" style="border:1px solid {{ u.border }};background:var(--cui-bg-normal);cursor:pointer;border-radius:999px;padding:5px 12px;font-size:14px;color:{{ u.fg }}">{{ u.label }}</button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ pl.noUnused }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:var(--cui-fg-subtle)">Everything in your pantry is used by this week’s plan.</span></sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ pl.isShop }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="font-size:15px;color:var(--cui-fg-subtle)">{{ shop.subline }}</div>
+        <sc-for list="{{ shop.groups }}" as="g" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <div style="font-size:12px;font-weight:650;letter-spacing:0.04em;text-transform:uppercase;color:var(--cui-fg-subtle);padding:6px 0">{{ g.label }}</div>
+            <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="3">
+              <label style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:var(--cui-bg-subtle);cursor:pointer;margin-bottom:4px">
+                <input type="checkbox" checked="{{ i.checked }}" onChange="{{ i.onToggle }}" style="width:20px;height:20px;margin-top:1px;accent-color:#1e1c1c;flex-shrink:0">
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;opacity:{{ i.opacity }}">
+                  <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:550;text-decoration:{{ i.deco }}">{{ i.name }}</span><span style="font-weight:650;white-space:nowrap">{{ i.qty }}</span></div>
+                  <span style="font-size:13px;color:var(--cui-fg-subtle)">{{ i.sub }}</span>
+                  <sc-if value="{{ i.hasFlag }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;font-weight:650;color:{{ i.flagFg }}">{{ i.flag }}</span></sc-if>
+                </div>
+              </label>
+            </sc-for>
+          </div>
+        </sc-for>
+        <sc-if value="{{ shop.empty }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--cui-bg-subtle);border-radius:16px;padding:24px;color:var(--cui-fg-subtle)">{{ shop.emptyText }}</div>
+        </sc-if>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:10px">
+          <h2 style="margin:0;font-size:19px;font-weight:650">Add an item</h2>
+          <div style="display:flex;gap:8px">
+            <input value="{{ manualText }}" onChange="{{ onManualText }}" onKeyDown="{{ onManualKey }}" placeholder="e.g. lemons, 2" style="flex:1;min-width:0;padding:9px 12px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+            <button onClick="{{ shop.addManual }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Add</button>
+          </div>
+          <button onClick="{{ shop.toPantry }}" style="border:1px solid var(--cui-border-normal);background:var(--cui-bg-normal);cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550;opacity:{{ shop.toPantryOpacity }}">{{ shop.toPantryLabel }}</button>
+          <span style="font-size:13px;color:var(--cui-fg-subtle)">Checked items with a known quantity are added to your pantry.</span>
+        </div>
+        <sc-if value="{{ shop.hasExpiring }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--cui-bg-warning);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:8px">
+            <h2 style="margin:0;font-size:17px;font-weight:650;color:var(--cui-fg-warning)">Use first</h2>
+            <sc-for list="{{ shop.expiring }}" as="e" hint-placeholder-count="2"><div style="font-size:14px;display:flex;justify-content:space-between;gap:8px"><span>{{ e.name }}</span><span style="font-weight:650;color:var(--cui-fg-warning)">{{ e.when }}</span></div></sc-for>
+          </div>
+        </sc-if>
+        <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:6px">
+          <h2 style="margin:0;font-size:17px;font-weight:650">Already in your pantry</h2>
+          <span style="font-size:14px;color:var(--cui-fg-subtle)">{{ shop.coveredText }}</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</section>
+</sc-if>
+
+<!-- ================= FODMAP ================= -->
+<sc-if value="{{ isFodmap }}" hint-placeholder-val="{{ false }}">
+<section data-screen-label="FODMAP journey" style="display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="align-self:flex-start;background:var(--cui-bg-promo);color:var(--cui-fg-promo);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:650">{{ fj.phaseLabel }}</span>
+      <h1 style="margin:0;font-size:33px;line-height:1.05;font-weight:650">FODMAP journey</h1>
+      <p style="margin:0;color:var(--cui-fg-subtle)">{{ fj.subline }}</p>
+    </div>
+    <div style="display:flex;gap:4px;background:var(--cui-bg-subtle);border-radius:999px;padding:4px;flex-wrap:wrap">
+      <sc-for list="{{ fj.tabs }}" as="t" hint-placeholder-count="3">
+        <button onClick="{{ t.onClick }}" style="border:none;cursor:pointer;border-radius:999px;padding:8px 16px;font-size:15px;font-weight:550;background:{{ t.bg }};color:{{ t.fg }}">{{ t.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <sc-if value="{{ fj.isChallenge }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ fj.hasErr }}" hint-placeholder-val="{{ false }}">
+      <div role="alert" style="background:var(--cui-bg-danger);color:var(--cui-fg-danger);border-radius:14px;padding:12px 16px;font-size:15px;display:flex;gap:12px;justify-content:space-between;align-items:flex-start"><span><b>Blocked. </b>{{ fj.err }}</span><button onClick="{{ fj.clearErr }}" aria-label="Dismiss" style="border:none;background:transparent;cursor:pointer"><img src="icons/close.svg" alt="" style="width:18px;height:18px"></button></div>
+    </sc-if>
+    <sc-if value="{{ fj.hasGuidance }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--cui-bg-normal);border:1px solid var(--cui-border-promo);border-radius:14px;padding:12px 16px;font-size:15px;display:flex;gap:12px;justify-content:space-between;align-items:flex-start"><span><b style="color:var(--cui-fg-promo)">Next step. </b>{{ fj.guidance }}</span><button onClick="{{ fj.clearGuidance }}" aria-label="Dismiss" style="border:none;background:transparent;cursor:pointer"><img src="icons/close.svg" alt="" style="width:18px;height:18px"></button></div>
+    </sc-if>
+
+    <sc-if value="{{ fj.hasCurrent }}" hint-placeholder-val="{{ true }}">
+    <div style="background:var(--cui-bg-promo);border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:18px">
+      <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:13px;font-weight:650;letter-spacing:0.04em;text-transform:uppercase;color:var(--cui-fg-promo)">{{ fj.cur.kicker }}</span>
+          <h2 style="margin:0;font-family:var(--cui-font-stack-display);font-size:clamp(28px,4vw,40px);line-height:1">{{ fj.cur.product }}</h2>
+          <span style="font-size:16px">{{ fj.cur.category }} · <span style="color:var(--cui-fg-subtle)">{{ fj.cur.productPl }}</span></span>
+        </div>
+        <div style="text-align:right;display:flex;flex-direction:column;gap:2px">
+          <span style="font-weight:650">{{ fj.cur.statusLabel }}</span>
+          <span style="font-size:14px;color:var(--cui-fg-subtle)">{{ fj.cur.windowText }}</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+        <sc-for list="{{ fj.cur.days }}" as="d" hint-placeholder-count="4">
+          <div style="background:var(--cui-bg-normal);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:4px;border:2px solid {{ d.border }};opacity:{{ d.opacity }}">
+            <span style="font-size:13px;font-weight:650;color:var(--cui-fg-promo)">{{ d.label }}</span>
+            <span style="font-size:17px;font-weight:650;line-height:1.2">{{ d.dose }}</span>
+            <span style="font-size:13px;color:{{ d.stateFg }};font-weight:550">{{ d.state }}</span>
+          </div>
+        </sc-for>
+        <div style="background:var(--cui-bg-normal);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:4px;border:2px solid {{ fj.cur.washBorder }}">
+          <span style="font-size:13px;font-weight:650;color:var(--cui-fg-promo)">Washout</span>
+          <span style="font-size:17px;font-weight:650;line-height:1.2">{{ fj.cur.washTitle }}</span>
+          <span style="font-size:13px;color:var(--cui-fg-subtle)">{{ fj.cur.washSub }}</span>
+        </div>
+      </div>
+
+      <sc-if value="{{ fj.cur.needsConfirm }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--cui-bg-normal);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <b>Confirm this food before scheduling</b>
+          <span style="font-size:15px">{{ fj.cur.confirmText }}</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button onClick="{{ fj.cur.onConfirm }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Include in my sequence</button>
+            <input value="{{ skipText }}" onChange="{{ onSkipText }}" placeholder="Reason to skip (e.g. agreed with dietitian)" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+            <button onClick="{{ fj.cur.onSkip }}" style="border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Skip</button>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fj.cur.needsDose }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--cui-bg-normal);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;border:1px solid var(--cui-border-danger)">
+          <b style="color:var(--cui-fg-danger)">Your documents disagree on the dose</b>
+          <span style="font-size:15px">{{ fj.cur.doseText }}</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onClick="{{ fj.cur.onDoseTable }}" style="border:1px solid var(--cui-border-strong);background:transparent;cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Follow dose table (25 / 37 / 50 g)</button>
+            <button onClick="{{ fj.cur.onDoseRecipe }}" style="border:1px solid var(--cui-border-strong);background:transparent;cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Follow test recipe (1 / 2 / 3 slices)</button>
+          </div>
+          <span style="font-size:13px;color:var(--cui-fg-subtle)">Choose only after checking with your dietitian. The app won’t pick for you.</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fj.cur.canSchedule }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--cui-bg-normal);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <sc-if value="{{ fj.cur.isFirst }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--cui-border-subtle)">
+              <b>Before the first challenge</b>
+              <span style="font-size:14px;color:var(--cui-fg-subtle)">Your recommendations: elimination planned for 3–4 weeks (2–6 max), at least 14 days of symptom monitoring, and move on only once symptoms have eased satisfactorily.</span>
+              <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+                <label style="display:flex;gap:8px;align-items:center;font-size:15px">Elimination started <input type="date" value="{{ fj.cur.elimStart }}" onChange="{{ fj.cur.onElimStart }}" style="padding:8px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)"></label>
+                <span style="font-size:14px;font-weight:550;color:{{ fj.cur.elimFg }}">{{ fj.cur.elimText }}</span>
+              </div>
+              <label style="display:flex;gap:8px;align-items:center;font-size:15px;cursor:pointer"><input type="checkbox" checked="{{ fj.cur.relief }}" onChange="{{ fj.cur.onRelief }}" style="width:18px;height:18px;accent-color:#1e1c1c">My symptoms have eased satisfactorily on the elimination diet</label>
+            </div>
+          </sc-if>
+          <b>Schedule this challenge week</b>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <label style="display:flex;gap:8px;align-items:center;font-size:15px">Week starts <input type="date" value="{{ fj.schedDate }}" onChange="{{ onSchedDate }}" style="padding:8px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)"></label>
+            <button onClick="{{ fj.cur.onSchedule }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Schedule week</button>
+          </div>
+          <span style="font-size:13px;color:var(--cui-fg-subtle)">{{ fj.cur.earliestText }}</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fj.cur.canLog }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--cui-bg-normal);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;flex-direction:column;gap:2px"><b>{{ fj.cur.logTitle }}</b><span style="font-size:14px;color:var(--cui-fg-subtle)">{{ fj.cur.logSub }}</span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <input type="date" value="{{ fj.logDate }}" onChange="{{ onLogDate }}" aria-label="Date eaten" style="padding:8px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+            <sc-for list="{{ fj.levels }}" as="l" hint-placeholder-count="3">
+              <button onClick="{{ l.onClick }}" style="border:1px solid {{ l.border }};cursor:pointer;border-radius:999px;padding:8px 14px;font-size:15px;font-weight:550;background:{{ l.bg }};color:{{ l.fg }}">{{ l.label }}</button>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onClick="{{ fj.cur.onLog }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">{{ fj.cur.logButton }}</button>
+            <sc-if value="{{ fj.cur.canEnd }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fj.cur.onEnd }}" style="border:1px solid var(--cui-border-strong);background:transparent;cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">End challenge days · start washout</button></sc-if>
+            <button onClick="{{ fj.cur.onIncomplete }}" style="border:none;background:transparent;cursor:pointer;padding:9px 6px;font-size:14px;text-decoration:underline;color:var(--cui-fg-subtle)">Mark test incomplete</button>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fj.cur.needsSettle }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--cui-bg-normal);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;border:1px solid var(--cui-border-danger)">
+          <b style="color:var(--cui-fg-danger)">Testing stopped after strong symptoms</b>
+          <span style="font-size:15px">Your plan: 2 days of elimination diet. When symptoms settle, repeat with a smaller portion or with a day’s gap. If it’s still poorly tolerated, exclude it and retest later (e.g. in 3 months).</span>
+          <div><button onClick="{{ fj.cur.onSettle }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">My symptoms have settled</button></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fj.cur.canReview }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--cui-bg-normal);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;flex-direction:column;gap:2px"><b>Review the outcome</b><span style="font-size:14px;color:var(--cui-fg-subtle)">The next challenge unlocks only after you review. Check your symptom diary and talk to your dietitian if unsure.</span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <sc-for list="{{ fj.cur.outcomes }}" as="o" hint-placeholder-count="4">
+              <button onClick="{{ o.onClick }}" title="{{ o.title }}" style="border:1px solid var(--cui-border-strong);background:transparent;cursor:pointer;border-radius:999px;padding:9px 14px;font-weight:550;font-size:15px" style-hover="background:var(--cui-bg-normal-hovered)">{{ o.label }}</button>
+            </sc-for>
+          </div>
+          <input value="{{ reviewNote }}" onChange="{{ onReviewNote }}" placeholder="Note (optional) — e.g. fine up to day 2 portion" style="padding:9px 12px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+        </div>
+      </sc-if>
+      <sc-if value="{{ fj.cur.waiting }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--cui-bg-normal);border-radius:16px;padding:16px;font-size:15px">{{ fj.cur.waitingText }}</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ fj.done }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--cui-bg-promo);border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:6px">
+        <h2 style="margin:0;font-size:25px;font-weight:650">All challenges reviewed</h2>
+        <span>Your results are below. Plan the next phase with your dietitian. Foods marked not tolerated have a retest date.</span>
+      </div>
+    </sc-if>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;align-items:start">
+      <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:6px">
+        <h2 style="margin:0;font-size:19px;font-weight:650">Sequence</h2>
+        <span style="font-size:13px;color:var(--cui-fg-subtle);margin-bottom:6px">Already tested some foods? Use “Add past result” to record them with their dates, then add symptoms for those days.</span>
+        <sc-for list="{{ fj.seq }}" as="s" hint-placeholder-count="10">
+          <div style="display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--cui-border-subtle)">
+            <span style="width:26px;height:26px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:650;flex-shrink:0;background:{{ s.dotBg }};color:{{ s.dotFg }}">{{ s.n }}</span>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+              <span style="font-weight:550">{{ s.product }}</span><span style="font-size:13px;color:var(--cui-fg-subtle)">{{ s.sub }}</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <sc-if value="{{ s.canPast }}" hint-placeholder-val="{{ false }}"><button onClick="{{ s.onPast }}" style="border:1px solid var(--cui-border-normal);background:var(--cui-bg-normal);cursor:pointer;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:550">Add past result</button></sc-if>
+                <sc-if value="{{ s.canSym }}" hint-placeholder-val="{{ false }}"><button onClick="{{ s.onSym }}" style="border:1px solid var(--cui-border-promo);color:var(--cui-fg-promo);background:var(--cui-bg-normal);cursor:pointer;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:550">Add symptoms · {{ s.symCount }}</button></sc-if>
+                <sc-if value="{{ s.canUndo }}" hint-placeholder-val="{{ false }}"><button onClick="{{ s.onUndo }}" style="border:none;background:transparent;cursor:pointer;padding:3px 4px;font-size:13px;text-decoration:underline;color:var(--cui-fg-subtle)">Remove record</button></sc-if>
+              </div>
+            </div>
+            <span style="font-size:12px;font-weight:650;padding:3px 9px;border-radius:999px;white-space:nowrap;background:{{ s.bg }};color:{{ s.fg }}">{{ s.status }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ fj.hasRecipe }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;font-weight:650;color:var(--cui-fg-promo);text-transform:uppercase;letter-spacing:0.04em">Suggested test recipe</span><h2 style="margin:0;font-size:19px;font-weight:650">{{ fj.recipe.nameEn }}</h2><span style="font-size:14px;color:var(--cui-fg-subtle)">{{ fj.recipe.namePl }} · original wording</span></div>
+          <sc-for list="{{ fj.recipe.flags }}" as="f" hint-placeholder-count="1"><div style="font-size:13px;font-weight:550;color:var(--cui-fg-warning);background:var(--cui-bg-warning);border-radius:10px;padding:6px 10px">{{ f }}</div></sc-for>
+          <ul style="margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:2px"><sc-for list="{{ fj.recipe.ingredients }}" as="i" hint-placeholder-count="5"><li>{{ i }}</li></sc-for></ul>
+          <ol style="margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px"><sc-for list="{{ fj.recipe.steps }}" as="i" hint-placeholder-count="3"><li>{{ i }}</li></sc-for></ol>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ fj.isDiary }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;align-items:start">
+      <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px">
+        <h2 style="margin:0;font-size:19px;font-weight:650">Log symptoms</h2>
+        <span style="font-size:13px;color:var(--cui-fg-subtle);margin-top:-8px">Past dates are fine — entries link to the challenge whose week contains the date.</span>
+        <sc-if value="{{ sym.hasDayChips }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:6px;background:var(--cui-bg-promo);border-radius:14px;padding:10px 12px">
+            <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:13px;font-weight:650;color:var(--cui-fg-promo)">{{ sym.dayChipsLabel }}</span><button onClick="{{ sym.clearDayChips }}" aria-label="Hide" style="border:none;background:transparent;cursor:pointer;padding:0"><img src="icons/close.svg" alt="" style="width:16px;height:16px"></button></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ sym.dayChips }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.onClick }}" style="border:1px solid {{ c.border }};cursor:pointer;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:550;background:{{ c.bg }};color:{{ c.fg }}">{{ c.label }}</button></sc-for></div>
+          </div>
+        </sc-if>
+        <label style="display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:550">Date and time<input type="datetime-local" value="{{ sym.at }}" onChange="{{ sym.onAt }}" style="padding:9px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal);font-weight:375"></label>
+        <label style="display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:550">Meal
+          <select value="{{ sym.mealId }}" onChange="{{ sym.onMeal }}" style="padding:9px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal);font-weight:375">
+            <option value="">Not linked to a meal</option>
+            <sc-for list="{{ sym.mealOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+          </select>
+        </label>
+        <div style="font-size:14px;border-radius:12px;padding:10px 12px;background:{{ sym.linkBg }};color:{{ sym.linkFg }}">{{ sym.linkText }}</div>
+        <sc-for list="{{ sym.scales }}" as="s" hint-placeholder-count="3">
+          <label style="display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:550">
+            <span style="display:flex;justify-content:space-between"><span>{{ s.label }}</span><span style="font-family:var(--cui-font-stack-display)">{{ s.value }}<span style="font-family:var(--cui-font-stack-default);font-weight:375;color:var(--cui-fg-subtle)"> / {{ s.max }}</span></span></span>
+            <input type="range" min="0" max="{{ s.max }}" value="{{ s.value }}" onChange="{{ s.onChange }}" style="accent-color:#1e1c1c">
+          </label>
+        </sc-for>
+        <label style="display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:550">Stool (Bristol scale)
+          <select value="{{ sym.stool }}" onChange="{{ sym.onStool }}" style="padding:9px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal);font-weight:375">
+            <option value="">Not recorded</option><option value="1">1 · Separate hard lumps</option><option value="2">2 · Lumpy, sausage-shaped</option><option value="3">3 · Sausage with cracks</option><option value="4">4 · Smooth, soft</option><option value="5">5 · Soft blobs</option><option value="6">6 · Mushy</option><option value="7">7 · Watery</option>
+          </select>
+        </label>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <label style="display:flex;gap:8px;align-items:center;font-size:15px;cursor:pointer"><input type="checkbox" checked="{{ sym.diarrhea }}" onChange="{{ sym.onDiarrhea }}" style="width:18px;height:18px;accent-color:#1e1c1c">Diarrhoea</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:15px;cursor:pointer"><input type="checkbox" checked="{{ sym.stress }}" onChange="{{ sym.onStress }}" style="width:18px;height:18px;accent-color:#1e1c1c">Stress or poor sleep</label>
+        </div>
+        <input value="{{ sym.other }}" onChange="{{ sym.onOther }}" placeholder="Other symptoms (e.g. reflux, urgency)" style="padding:9px 12px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+        <textarea value="{{ sym.notes }}" onChange="{{ sym.onNotes }}" rows="2" placeholder="Notes — stress, sleep, anything unusual" style="padding:9px 12px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal);resize:vertical"></textarea>
+        <button onClick="{{ sym.onSave }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550;align-self:flex-start">Save entry</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px">
+          <h2 style="margin:0;font-size:19px;font-weight:650">By FODMAP group</h2>
+          <span style="font-size:13px;color:var(--cui-fg-subtle)">Average scores per group. Observations only — this diary doesn’t diagnose intolerances or show cause.</span>
+          <sc-for list="{{ sym.summary }}" as="g" hint-placeholder-count="2">
+            <div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--cui-border-subtle);font-size:14px;flex-wrap:wrap"><span style="font-weight:550">{{ g.label }}</span><span style="color:var(--cui-fg-subtle)">{{ g.text }}</span></div>
+          </sc-for>
+          <sc-if value="{{ sym.noSummary }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:var(--cui-fg-subtle)">No entries yet.</span></sc-if>
+        </div>
+        <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:4px">
+          <h2 style="margin:0 0 6px;font-size:19px;font-weight:650">History</h2>
+          <sc-for list="{{ sym.history }}" as="h" hint-placeholder-count="2">
+            <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--cui-border-subtle);align-items:flex-start">
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:14px">
+                <span style="font-weight:550">{{ h.when }}</span>
+                <span>{{ h.scores }}</span>
+                <span style="color:var(--cui-fg-subtle)">{{ h.meta }}</span>
+                <sc-if value="{{ h.hasChallenge }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;font-weight:650;color:var(--cui-fg-promo)">{{ h.challenge }}</span></sc-if>
+              </div>
+              <button onClick="{{ h.onDelete }}" aria-label="Delete entry" style="border:none;background:transparent;cursor:pointer;width:32px;height:32px;border-radius:999px"><img src="icons/delete.svg" alt="" style="width:18px;height:18px"></button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ fj.isGuide }}" hint-placeholder-val="{{ false }}">
+    <div style="font-size:14px;color:var(--cui-fg-subtle)">Summary of “{{ gd.file }}” · {{ gd.author }} · {{ gd.dietType }}, {{ gd.kcal }} kcal. Original Polish wording is in the document.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="background:var(--cui-bg-danger);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px">
+          <h2 style="margin:0;font-size:19px;font-weight:650;color:var(--cui-fg-danger)">Your known triggers</h2>
+          <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ gd.triggers }}" as="x" hint-placeholder-count="5"><span style="background:var(--cui-bg-normal);border-radius:999px;padding:4px 12px;font-size:14px;font-weight:550">{{ x }}</span></sc-for></div>
+        </div>
+        <div style="background:var(--cui-bg-promo);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px">
+          <h2 style="margin:0;font-size:19px;font-weight:650">Diet stages</h2>
+          <sc-for list="{{ gd.stages }}" as="s" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:2px"><b style="font-size:15px">{{ s.t }}</b><span style="font-size:14px">{{ s.d }}</span></div></sc-for>
+        </div>
+        <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px">
+          <h2 style="margin:0;font-size:19px;font-weight:650">Stage I focus</h2>
+          <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:15px"><sc-for list="{{ gd.focus }}" as="x" hint-placeholder-count="6"><li>{{ x }}</li></sc-for></ul>
+        </div>
+        <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px">
+          <h2 style="margin:0;font-size:19px;font-weight:650">Daily habits</h2>
+          <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:15px"><sc-for list="{{ gd.habits }}" as="x" hint-placeholder-count="6"><li>{{ x }}</li></sc-for></ul>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px">
+          <h2 style="margin:0;font-size:19px;font-weight:650">Supplements</h2>
+          <div style="background:var(--cui-bg-normal);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px">
+            <label style="display:flex;gap:8px;align-items:center;font-size:15px;font-weight:550;flex-wrap:wrap">Psyllium started <input type="date" value="{{ gd.psyStart }}" onChange="{{ gd.onPsyStart }}" style="padding:7px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal);font-weight:375"></label>
+            <span style="font-size:15px">{{ gd.psyToday }}</span>
+          </div>
+          <sc-for list="{{ gd.supplements }}" as="s" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;gap:2px"><b style="font-size:15px">{{ s.t }}</b><span style="font-size:14px">{{ s.d }}</span></div></sc-for>
+        </div>
+        <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px">
+          <h2 style="margin:0;font-size:19px;font-weight:650">Read labels for</h2>
+          <span style="font-size:15px">{{ gd.labels }}</span>
+          <span style="font-size:14px;color:var(--cui-fg-subtle)"><b>Hidden fructans often in:</b> {{ gd.hidden }}. “Gluten-free” or “high-protein” doesn’t mean well tolerated.</span>
+        </div>
+        <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px">
+          <h2 style="margin:0;font-size:19px;font-weight:650">After an accidental high-FODMAP meal</h2>
+          <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:15px"><sc-for list="{{ gd.flare }}" as="x" hint-placeholder-count="4"><li>{{ x }}</li></sc-for></ul>
+        </div>
+        <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px">
+          <h2 style="margin:0;font-size:19px;font-weight:650">Day with loose stools</h2>
+          <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:15px"><sc-for list="{{ gd.looseStool }}" as="x" hint-placeholder-count="4"><li>{{ x }}</li></sc-for></ul>
+          <h2 style="margin:8px 0 0;font-size:19px;font-weight:650">Bloating</h2>
+          <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:15px"><sc-for list="{{ gd.bloating }}" as="x" hint-placeholder-count="3"><li>{{ x }}</li></sc-for></ul>
+        </div>
+        <div style="background:var(--cui-bg-warning);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px">
+          <h2 style="margin:0;font-size:19px;font-weight:650;color:var(--cui-fg-warning)">To discuss with your doctor</h2>
+          <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:15px"><sc-for list="{{ gd.medical }}" as="x" hint-placeholder-count="3"><li>{{ x }}</li></sc-for></ul>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ fj.isRules }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;align-items:start">
+      <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px">
+        <h2 style="margin:0;font-size:19px;font-weight:650">From your reintroduction plan</h2>
+        <span style="font-size:14px;color:var(--cui-fg-subtle)">{{ fj.durationNote }}</span>
+        <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:15px"><sc-for list="{{ fj.rules }}" as="r" hint-placeholder-count="6"><li>{{ r }}</li></sc-for></ul>
+        <h3 style="margin:8px 0 0;font-size:16px;font-weight:650">Weekly rhythm</h3>
+        <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:15px"><sc-for list="{{ fj.schedule }}" as="r" hint-placeholder-count="6"><li>{{ r }}</li></sc-for></ul>
+      </div>
+      <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px">
+        <h2 style="margin:0;font-size:19px;font-weight:650">How the app enforces it</h2>
+        <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:15px">
+          <li>One challenge food per 7-day week — so never two FODMAP groups in one week.</li>
+          <li>Challenge days 1–3 (optional 4) run on consecutive days inside that week.</li>
+          <li>Washout: at least 2 days, 3 after any symptoms. After strong symptoms you confirm they’ve settled.</li>
+          <li>The order follows your document and can’t be changed. Nothing advances until you review the outcome.</li>
+          <li>Portions are shown exactly as written. Day 4 has no amount — it’s your usual portion.</li>
+          <li>During a challenge week, meals with foods from another group are blocked from the planner; foods from the same group are flagged as incidental exposure.</li>
+          <li>Foods you’ve already tested stay flagged until reintroduction ends.</li>
+        </ul>
+        <h3 style="margin:8px 0 0;font-size:16px;font-weight:650">Alternatives listed in your document</h3>
+        <sc-for list="{{ fj.alts }}" as="a" hint-placeholder-count="3"><div style="font-size:14px"><b>{{ a.label }}:</b> <span style="color:var(--cui-fg-subtle)">{{ a.items }}</span></div></sc-for>
+      </div>
+    </div>
+  </sc-if>
+</section>
+</sc-if>
+
+<!-- ================= REVIEW ================= -->
+<sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+<section data-screen-label="Data review" style="display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <h1 style="margin:0;font-size:33px;line-height:1.05;font-weight:650">Data review</h1>
+    <p style="margin:0;color:var(--cui-fg-subtle);max-width:720px;text-wrap:pretty">Everything below was extracted from your uploaded PDFs. Check it before relying on the app. Original Polish wording is kept on every meal and test recipe.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+    <sc-for list="{{ rv.plans }}" as="p" hint-placeholder-count="4">
+      <div style="background:var(--cui-bg-subtle);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:13px;font-weight:650;color:var(--cui-fg-subtle)">{{ p.kicker }}</span>
+        <span style="font-weight:650;font-size:17px">{{ p.title }}</span>
+        <span style="font-size:14px">{{ p.sub }}</span>
+        <span style="font-size:12px;color:var(--cui-fg-subtle);word-break:break-word">{{ p.file }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ hasImported }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <h2 style="margin:0;font-size:21px;font-weight:650">Plans you imported</h2>
+      <sc-for list="{{ importedList }}" as="p" hint-placeholder-count="1">
+        <div style="background:var(--cui-bg-subtle);border-radius:14px;padding:12px 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;min-width:0"><b>{{ p.name }}</b><span style="font-size:13px;color:var(--cui-fg-subtle);word-break:break-word">{{ p.sub }}</span></div>
+          <button onClick="{{ p.onRemove }}" style="border:1px solid var(--cui-border-danger);color:var(--cui-fg-danger);background:transparent;cursor:pointer;border-radius:999px;padding:7px 14px;font-weight:550">Remove</button>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <h2 style="margin:0;font-size:21px;font-weight:650">Conflicts, gaps and assumptions</h2>
+      <sc-for list="{{ rv.issues }}" as="i" hint-placeholder-count="6">
+        <div style="background:var(--cui-bg-subtle);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:11px;font-weight:650;padding:2px 8px;border-radius:999px;background:{{ i.bg }};color:{{ i.fg }};text-transform:uppercase;letter-spacing:0.04em">{{ i.sev }}</span><span style="font-size:12px;color:var(--cui-fg-subtle)">{{ i.area }}</span></div>
+          <span style="font-weight:650">{{ i.t }}</span>
+          <span style="font-size:14px;color:var(--cui-fg-subtle);text-wrap:pretty">{{ i.d }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px">
+        <h2 style="margin:0;font-size:19px;font-weight:650">Reintroduction protocol as extracted</h2>
+        <sc-for list="{{ rv.protocol }}" as="p" hint-placeholder-count="10">
+          <div style="display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;padding:6px 0;border-bottom:1px solid var(--cui-border-subtle);font-size:14px">
+            <span style="font-weight:650;color:var(--cui-fg-promo)">{{ p.n }}</span>
+            <div style="display:flex;flex-direction:column"><span><b>{{ p.cat }}</b> · {{ p.product }}</span><span style="color:var(--cui-fg-subtle)">{{ p.doses }}</span><sc-if value="{{ p.hasNote }}" hint-placeholder-val="{{ false }}"><span style="color:var(--cui-fg-warning);font-weight:550">{{ p.note }}</span></sc-if></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px">
+        <h2 style="margin:0;font-size:19px;font-weight:650">My dietary rules</h2>
+        <span style="font-size:14px;color:var(--cui-fg-subtle)">Used for the diet badge on every meal. Turning one off doesn’t change your plans.</span>
+        <span style="font-size:14px;color:var(--cui-fg-warning);background:var(--cui-bg-warning);border-radius:12px;padding:10px 12px">Your dietitian’s recommendations don’t ask for gluten-free or dairy-free: spelt sourdough and lactose-free dairy are on the recommended list. These rules are your own — decide with your dietitian.</span>
+        <sc-for list="{{ rv.toggles }}" as="t" hint-placeholder-count="3">
+          <label style="display:flex;gap:10px;align-items:center;cursor:pointer;font-size:15px"><input type="checkbox" checked="{{ t.on }}" onChange="{{ t.onChange }}" style="width:18px;height:18px;accent-color:#1e1c1c">{{ t.label }}</label>
+        </sc-for>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:15px">Symptom scale
+          <sc-for list="{{ rv.scales }}" as="s" hint-placeholder-count="2"><button onClick="{{ s.onClick }}" style="border:1px solid var(--cui-border-normal);cursor:pointer;border-radius:999px;padding:5px 12px;font-weight:550;background:{{ s.bg }};color:{{ s.fg }}">{{ s.label }}</button></sc-for>
+        </div>
+      </div>
+      <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0;font-size:19px;font-weight:650">Safety rule tests</h2><span style="font-weight:650;color:{{ rv.testsFg }}">{{ rv.testsSummary }}</span></div>
+        <sc-for list="{{ rv.tests }}" as="t" hint-placeholder-count="6">
+          <div style="display:flex;gap:8px;font-size:14px;align-items:flex-start"><span style="font-weight:650;color:{{ t.fg }};width:38px;flex-shrink:0">{{ t.mark }}</span><span>{{ t.name }}<span style="display:block;color:var(--cui-fg-danger)">{{ t.detail }}</span></span></div>
+        </sc-for>
+        <button onClick="{{ rv.runTests }}" style="align-self:flex-start;border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:7px 14px;font-weight:550">Run again</button>
+      </div>
+      <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><h2 style="margin:0;font-size:19px;font-weight:650">Sync across devices</h2><span style="font-size:12px;font-weight:650;padding:3px 10px;border-radius:999px;background:{{ syncVm.bg }};color:{{ syncVm.fg }}">{{ syncVm.label }}</span></div>
+        <sc-if value="{{ syncVm.signedIn }}" hint-placeholder-val="{{ false }}">
+          <span style="font-size:15px">Signed in as <b>{{ syncVm.email }}</b>. Pantry, planner, challenges, symptom diary and settings save to your Supabase account and appear on every device where you sign in.</span>
+          <span style="font-size:13px;color:var(--cui-fg-subtle)">{{ syncVm.last }}</span>
+          <sc-if value="{{ syncVm.hasErr }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:var(--cui-fg-danger)">{{ syncVm.err }}</span></sc-if>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onClick="{{ syncVm.onSyncNow }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Sync now</button>
+            <button onClick="{{ syncVm.onSignOut }}" style="border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Sign out</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ syncVm.signedOut }}" hint-placeholder-val="{{ true }}">
+          <span style="font-size:14px;color:var(--cui-fg-subtle)">Sign in with the same email on your phone and computer. Your first sign-in uploads what’s on this device; on a new device, your cloud data replaces the sample data.</span>
+          <b style="font-size:16px">{{ syncVm.title }}</b>
+          <input type="email" autocomplete="email" value="{{ syncVm.authEmail }}" onChange="{{ syncVm.onEmail }}" placeholder="Email" style="padding:10px 12px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+          <input type="password" autocomplete="current-password" value="{{ syncVm.authPw }}" onChange="{{ syncVm.onPw }}" onKeyDown="{{ syncVm.onPwKey }}" placeholder="Password (at least 6 characters)" style="padding:10px 12px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+          <sc-if value="{{ syncVm.hasMsg }}" hint-placeholder-val="{{ false }}"><div style="border-radius:12px;padding:10px 12px;font-size:14px;background:{{ syncVm.msgBg }};color:{{ syncVm.msgFg }}">{{ syncVm.msg }}</div></sc-if>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+            <button onClick="{{ syncVm.onAuth }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550">{{ syncVm.button }}</button>
+            <button onClick="{{ syncVm.onGithub }}" style="border:1px solid var(--cui-border-strong);background:var(--cui-bg-normal);color:var(--cui-fg-normal);cursor:pointer;border-radius:999px;padding:9px 18px;font-weight:550">Continue with GitHub</button>
+            <button onClick="{{ syncVm.onSwitch }}" style="border:none;background:transparent;cursor:pointer;padding:6px 0;font-size:14px;text-decoration:underline">{{ syncVm.switchText }}</button>
+          </div>
+        </sc-if>
+      </div>
+      <div style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px">
+        <h2 style="margin:0;font-size:19px;font-weight:650">Your data</h2>
+        <span style="font-size:14px;color:var(--cui-fg-subtle)">{{ rv.storageText }}</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onClick="{{ rv.exportData }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Export backup (JSON)</button>
+          <label style="border:1px solid var(--cui-border-normal);cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Import backup<input type="file" accept=".json,application/json" onChange="{{ rv.importData }}" style="display:none"></label>
+          <button onClick="{{ rv.resetData }}" style="border:1px solid var(--cui-border-danger);color:var(--cui-fg-danger);background:transparent;cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Reset everything</button>
+        </div>
+        <span style="font-size:13px;color:var(--cui-fg-subtle)">New PDFs can’t be imported in this version. The data from your five uploads is built in; ask to re-extract if your dietitian sends updated plans.</span>
+      </div>
+    </div>
+  </div>
+</section>
+</sc-if>
+
+</div>
+<sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}"><div style="height:96px"></div></sc-if>
+</main>
+
+<sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
+<nav style="position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--cui-bg-normal);border-top:1px solid var(--cui-border-subtle);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 6px max(10px, env(safe-area-inset-bottom))">
+  <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+    <button onClick="{{ n.onClick }}" style="border:none;background:transparent;cursor:pointer;padding:6px 2px;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:13px;font-weight:550;color:{{ n.mobFg }}"><span style="width:28px;height:4px;border-radius:999px;background:{{ n.mobBar }}"></span>{{ n.short }}</button>
+  </sc-for>
+</nav>
+</sc-if>
+
+<!-- ================= MEAL DETAIL ================= -->
+<sc-if value="{{ hasDetail }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;z-index:20;display:flex;justify-content:flex-end">
+  <div onClick="{{ closeDetail }}" style="position:absolute;inset:0;background:var(--cui-bg-overlay)"></div>
+  <div role="dialog" aria-label="Meal details" style="position:relative;width:min(600px,100%);height:100%;overflow:auto;background:var(--cui-bg-normal);display:flex;flex-direction:column">
+    <div style="position:sticky;top:0;background:var(--cui-bg-normal);padding:16px 20px;border-bottom:1px solid var(--cui-border-subtle);display:flex;justify-content:space-between;align-items:center;gap:12px;z-index:1">
+      <span style="font-size:14px;color:var(--cui-fg-subtle)">{{ dt.source }}</span>
+      <button onClick="{{ closeDetail }}" aria-label="Close" style="border:none;background:var(--cui-bg-subtle);border-radius:999px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center"><img src="icons/close.svg" alt="" style="width:20px;height:20px"></button>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:20px">
+      <div style="position:relative;aspect-ratio:16/10;border-radius:16px;overflow:hidden;background:repeating-linear-gradient(135deg,#efede5 0 10px,#e8e6dc 10px 20px);display:flex;align-items:center;justify-content:center">
+        <span style="font-size:13px;color:var(--cui-fg-subtle)">Generating preview…</span>
+        {{ dt.photoEl }}
+        <span style="position:absolute;left:10px;bottom:10px;background:var(--cui-bg-normal);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--cui-fg-subtle)">AI preview, not from your dietitian</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span style="font-size:13px;font-weight:650;text-transform:uppercase;letter-spacing:0.04em;color:var(--cui-fg-subtle)">{{ dt.slotLabel }}</span>
+        <h2 style="margin:0;font-size:28px;line-height:1.1;font-weight:650;text-wrap:balance">{{ dt.name }}</h2>
+        <span style="color:var(--cui-fg-subtle)">{{ dt.namePl }}</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+          <span style="font-size:12px;font-weight:650;padding:3px 9px;border-radius:999px;background:{{ dt.dietBg }};color:{{ dt.dietFg }}">{{ dt.dietLabel }}</span>
+          <span style="font-size:12px;font-weight:650;padding:3px 9px;border-radius:999px;background:{{ dt.fodBg }};color:{{ dt.fodFg }}">{{ dt.fodLabel }}</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;background:var(--cui-bg-subtle);border-radius:16px;padding:14px">
+        <sc-for list="{{ dt.nutrition }}" as="n" hint-placeholder-count="5"><div style="display:flex;flex-direction:column"><span style="font-family:var(--cui-font-stack-display);font-size:20px">{{ n.value }}</span><span style="font-size:12px;color:var(--cui-fg-subtle)">{{ n.label }}</span></div></sc-for>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px;font-weight:550">Portions</span>
+          <button onClick="{{ dt.less }}" aria-label="Fewer portions" style="width:32px;height:32px;border-radius:999px;border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;font-size:18px">−</button>
+          <span style="min-width:24px;text-align:center;font-weight:650">{{ dt.servings }}</span>
+          <button onClick="{{ dt.more }}" aria-label="More portions" style="width:32px;height:32px;border-radius:999px;border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;font-size:18px">+</button>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:550">My prep time<input type="number" min="0" value="{{ dt.prep }}" onChange="{{ dt.onPrep }}" placeholder="min" style="width:72px;padding:6px 8px;border:1px solid var(--cui-border-normal);border-radius:10px;background:var(--cui-bg-normal)"><span style="font-weight:375;color:var(--cui-fg-subtle)">min</span></label>
+      </div>
+      <div style="font-size:13px;color:var(--cui-fg-subtle);margin-top:-12px">{{ dt.servingsNote }} {{ dt.timeHint }}</div>
+
+      <sc-for list="{{ dt.alerts }}" as="a" hint-placeholder-count="1">
+        <div style="border-radius:12px;padding:10px 12px;font-size:14px;background:{{ a.bg }};color:{{ a.fg }}"><b>{{ a.title }} </b>{{ a.text }}</div>
+      </sc-for>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h3 style="margin:0;font-size:19px;font-weight:650">Ingredients</h3><span style="font-size:14px;color:{{ dt.availFg }};font-weight:550">{{ dt.availText }}</span></div>
+        <div style="display:flex;flex-direction:column;border:1px solid var(--cui-border-subtle);border-radius:14px;overflow:hidden">
+          <sc-for list="{{ dt.ingredients }}" as="i" hint-placeholder-count="8">
+            <div style="display:flex;gap:10px;padding:9px 12px;border-bottom:1px solid var(--cui-border-divider);align-items:center">
+              <span style="width:8px;height:8px;border-radius:999px;flex-shrink:0;background:{{ i.dot }}"></span>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:15px">{{ i.name }}</span><span style="font-size:12px;color:var(--cui-fg-subtle)">{{ i.orig }}</span></div>
+              <div style="text-align:right;display:flex;flex-direction:column"><span style="font-weight:650;font-size:15px">{{ i.qty }}</span><span style="font-size:12px;color:{{ i.statusFg }}">{{ i.status }}</span></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <h3 style="margin:0;font-size:19px;font-weight:650">Method <span style="font-size:13px;font-weight:375;color:var(--cui-fg-subtle)">· original Polish</span></h3>
+        <sc-if value="{{ dt.hasNote }}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:14px;color:var(--cui-fg-warning)">{{ dt.note }}</p></sc-if>
+        <p style="margin:0;font-size:15px;line-height:1.55;text-wrap:pretty">{{ dt.instructions }}</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <h3 style="margin:0;font-size:19px;font-weight:650">Substitutions</h3>
+        <sc-for list="{{ dt.subs }}" as="s" hint-placeholder-count="1"><p style="margin:0;font-size:14px">{{ s }}</p></sc-for>
+        <sc-if value="{{ dt.noSubs }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:14px;color:var(--cui-fg-subtle)">None given in the source. Any swap that might change FODMAP content needs your dietitian’s review.</p></sc-if>
+      </div>
+    </div>
+    <div style="position:sticky;bottom:0;margin-top:auto;background:var(--cui-bg-normal);border-top:1px solid var(--cui-border-subtle);padding:12px 20px;display:flex;gap:8px;flex-wrap:wrap">
+      <button onClick="{{ dt.onAdd }}" style="flex:1;border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:11px 16px;font-weight:550">Add to plan</button>
+      <button onClick="{{ dt.onMissing }}" style="flex:1;border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:11px 16px;font-weight:550;opacity:{{ dt.missingOpacity }}">{{ dt.missingLabel }}</button>
+      <button onClick="{{ dt.onCook }}" style="flex:1;border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:11px 16px;font-weight:550">I cooked this</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ================= PICKER ================= -->
+<sc-if value="{{ hasPicker }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;z-index:30;display:flex;align-items:{{ sheetAlign }};justify-content:center;padding:{{ sheetPad }}">
+  <div onClick="{{ closePicker }}" style="position:absolute;inset:0;background:var(--cui-bg-overlay)"></div>
+  <div role="dialog" style="position:relative;width:min(560px,100%);max-height:88vh;overflow:auto;background:var(--cui-bg-normal);border-radius:{{ sheetRadius }};padding:20px 20px max(20px, env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+      <div style="display:flex;flex-direction:column;gap:2px"><h2 style="margin:0;font-size:21px;font-weight:650">{{ pk.title }}</h2><span style="font-size:14px;color:var(--cui-fg-subtle)">{{ pk.sub }}</span></div>
+      <button onClick="{{ closePicker }}" aria-label="Close" style="border:none;background:var(--cui-bg-subtle);border-radius:999px;width:36px;height:36px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center"><img src="icons/close.svg" alt="" style="width:20px;height:20px"></button>
+    </div>
+    <sc-if value="{{ pk.chooseSlot }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:550">Day · {{ pk.weekLabel }}</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ pk.days }}" as="d" hint-placeholder-count="7"><button onClick="{{ d.onClick }}" style="border:1px solid {{ d.border }};cursor:pointer;border-radius:12px;padding:6px 10px;font-size:14px;font-weight:550;background:{{ d.bg }};color:{{ d.fg }};display:flex;flex-direction:column;align-items:center;min-width:52px"><span>{{ d.label }}</span><span style="font-size:11px;font-weight:375">{{ d.date }}</span></button></sc-for></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:550">Meal slot</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ pk.slots }}" as="s" hint-placeholder-count="3"><button onClick="{{ s.onClick }}" style="border:1px solid {{ s.border }};cursor:pointer;border-radius:999px;padding:7px 14px;font-size:14px;font-weight:550;background:{{ s.bg }};color:{{ s.fg }}">{{ s.label }}</button></sc-for></div>
+      </div>
+      <sc-if value="{{ pk.hasCurrent }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:var(--cui-fg-subtle)">{{ pk.currentText }}</div></sc-if>
+      <sc-for list="{{ pk.notes }}" as="n" hint-placeholder-count="1"><div style="border-radius:12px;padding:10px 12px;font-size:14px;background:{{ n.bg }};color:{{ n.fg }}">{{ n.text }}</div></sc-for>
+      <button onClick="{{ pk.onAdd }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:11px 16px;font-weight:550;opacity:{{ pk.addOpacity }}">{{ pk.addLabel }}</button>
+    </sc-if>
+    <sc-if value="{{ pk.chooseMeal }}" hint-placeholder-val="{{ false }}">
+      <input value="{{ pk.q }}" onChange="{{ pk.onQ }}" placeholder="Search meals or ingredients" style="padding:9px 12px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+      <sc-if value="{{ pk.hasErr }}" hint-placeholder-val="{{ false }}"><div role="alert" style="border-radius:12px;padding:10px 12px;font-size:14px;background:var(--cui-bg-danger);color:var(--cui-fg-danger)"><b>Blocked. </b>{{ pk.err }}</div></sc-if>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{ pk.meals }}" as="m" hint-placeholder-count="6">
+          <button onClick="{{ m.onPick }}" style="text-align:left;border:1px solid var(--cui-border-subtle);background:var(--cui-bg-subtle);cursor:pointer;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:3px" style-hover="border-color:#1e1c1c">
+            <span style="font-weight:550">{{ m.name }}</span>
+            <span style="font-size:13px;color:var(--cui-fg-subtle)">{{ m.sub }}</span>
+            <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="font-size:11px;font-weight:650;padding:2px 8px;border-radius:999px;background:{{ m.availBg }};color:{{ m.availFg }}">{{ m.avail }}</span><span style="font-size:11px;font-weight:650;padding:2px 8px;border-radius:999px;background:{{ m.fodBg }};color:{{ m.fodFg }}">{{ m.fod }}</span></span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ================= SLOT MENU ================= -->
+<sc-if value="{{ hasSlotMenu }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;z-index:30;display:flex;align-items:{{ sheetAlign }};justify-content:center;padding:{{ sheetPad }}">
+  <div onClick="{{ closeSlotMenu }}" style="position:absolute;inset:0;background:var(--cui-bg-overlay)"></div>
+  <div role="dialog" style="position:relative;width:min(440px,100%);max-height:88vh;overflow:auto;background:var(--cui-bg-normal);border-radius:{{ sheetRadius }};padding:20px 20px max(20px, env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px">
+    <span style="font-size:14px;color:var(--cui-fg-subtle)">{{ sm.where }}</span>
+    <h2 style="margin:0;font-size:21px;font-weight:650;line-height:1.2">{{ sm.name }}</h2>
+    <sc-for list="{{ sm.notes }}" as="n" hint-placeholder-count="1"><div style="border-radius:12px;padding:8px 12px;font-size:13px;background:{{ n.bg }};color:{{ n.fg }}">{{ n.text }}</div></sc-for>
+    <sc-if value="{{ sm.dup }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:8px;background:var(--cui-bg-subtle);border-radius:16px;padding:12px">
+        <span style="font-size:14px;font-weight:550">Copy to the same slot on</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ sm.dupDays }}" as="d" hint-placeholder-count="6"><button onClick="{{ d.onClick }}" style="border:1px solid {{ d.border }};cursor:pointer;border-radius:999px;padding:6px 12px;font-size:14px;font-weight:550;background:{{ d.bg }};color:{{ d.fg }}">{{ d.label }}</button></sc-for></div>
+        <button onClick="{{ sm.onDupApply }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:9px 14px;font-weight:550">Copy</button>
+      </div>
+    </sc-if>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <sc-for list="{{ sm.actions }}" as="a" hint-placeholder-count="5">
+        <button onClick="{{ a.onClick }}" style="border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:10px 12px;font-weight:550;color:{{ a.fg }}" style-hover="background:var(--cui-bg-normal-hovered)">{{ a.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ================= PAST CHALLENGE ================= -->
+<sc-if value="{{ hasPast }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;z-index:30;display:flex;align-items:{{ sheetAlign }};justify-content:center;padding:{{ sheetPad }}">
+  <div onClick="{{ closePast }}" style="position:absolute;inset:0;background:var(--cui-bg-overlay)"></div>
+  <div role="dialog" aria-label="Record a past challenge" style="position:relative;width:min(620px,100%);max-height:90vh;overflow:auto;background:var(--cui-bg-normal);border-radius:{{ sheetRadius }};padding:20px 20px max(20px, env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:13px;font-weight:650;color:var(--cui-fg-promo);text-transform:uppercase;letter-spacing:0.04em">Record a past challenge · {{ ps.category }}</span>
+        <h2 style="margin:0;font-size:24px;font-weight:650">{{ ps.product }}</h2>
+      </div>
+      <button onClick="{{ closePast }}" aria-label="Close" style="border:none;background:var(--cui-bg-subtle);border-radius:999px;width:36px;height:36px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center"><img src="icons/close.svg" alt="" style="width:20px;height:20px"></button>
+    </div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:15px;font-weight:550;flex-wrap:wrap">Challenge week started <input type="date" value="{{ ps.weekStart }}" max="{{ ps.today }}" onChange="{{ ps.onWeekStart }}" style="padding:8px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal);font-weight:375"><span style="font-weight:375;font-size:13px;color:var(--cui-fg-subtle)">{{ ps.windowText }}</span></label>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <sc-for list="{{ ps.days }}" as="d" hint-placeholder-count="4">
+        <div style="background:var(--cui-bg-subtle);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;opacity:{{ d.opacity }}">
+          <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b>{{ d.label }}</b><span style="font-size:13px;color:var(--cui-fg-subtle)">Prescribed: {{ d.prescribed }}</span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <input type="date" value="{{ d.date }}" max="{{ ps.today }}" onChange="{{ d.onDate }}" aria-label="Date" style="padding:7px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+            <sc-for list="{{ d.levels }}" as="l" hint-placeholder-count="4"><button onClick="{{ l.onClick }}" style="border:1px solid {{ l.border }};cursor:pointer;border-radius:999px;padding:6px 12px;font-size:14px;font-weight:550;background:{{ l.bg }};color:{{ l.fg }}">{{ l.label }}</button></sc-for>
+          </div>
+          <input value="{{ d.amount }}" onChange="{{ d.onAmount }}" placeholder="Amount actually eaten — leave empty if as prescribed" style="padding:7px 10px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal);font-size:14px">
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px"><b style="font-size:15px">Outcome</b>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ ps.outcomes }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.onClick }}" style="border:1px solid {{ o.border }};cursor:pointer;border-radius:999px;padding:7px 14px;font-size:14px;font-weight:550;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for></div>
+    </div>
+    <input value="{{ ps.note }}" onChange="{{ ps.onNote }}" placeholder="Note (optional) — e.g. fine up to 60 g" style="padding:9px 12px;border:1px solid var(--cui-border-normal);border-radius:12px;background:var(--cui-bg-normal)">
+    <sc-if value="{{ ps.hasErr }}" hint-placeholder-val="{{ false }}"><div role="alert" style="border-radius:12px;padding:10px 12px;font-size:14px;background:var(--cui-bg-danger);color:var(--cui-fg-danger)"><b>Can’t save. </b>{{ ps.err }}</div></sc-if>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button onClick="{{ ps.onSave }}" style="flex:1;border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:11px 16px;font-weight:550">Save past result</button>
+      <button onClick="{{ ps.onSaveSym }}" style="flex:1;border:1px solid var(--cui-border-strong);background:transparent;cursor:pointer;border-radius:999px;padding:11px 16px;font-weight:550">Save and add symptoms</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ================= CONFIRM ================= -->
+<sc-if value="{{ hasConfirm }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px">
+  <div onClick="{{ cancelConfirm }}" style="position:absolute;inset:0;background:var(--cui-bg-overlay)"></div>
+  <div role="alertdialog" style="position:relative;width:min(440px,100%);background:var(--cui-bg-normal);border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font-size:21px;font-weight:650">{{ cf.title }}</h2>
+    <p style="margin:0;color:var(--cui-fg-subtle);text-wrap:pretty">{{ cf.text }}</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+      <button onClick="{{ cancelConfirm }}" style="border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550">Cancel</button>
+      <button onClick="{{ cf.onYes }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550">{{ cf.yes }}</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div role="status" style="position:fixed;left:50%;transform:translateX(-50%);bottom:{{ toastBottom }};z-index:50;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);border-radius:999px;padding:10px 18px;font-size:15px;max-width:calc(100% - 32px);text-align:center">{{ toast }}</div>
+</sc-if>
+
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const PERSIST = ['pantry', 'prepTimes', 'settings', 'weeks', 'progress', 'symptoms', 'shopping', 'imports'];
+const TONE = {
+  ok: ['var(--cui-bg-success)', 'var(--cui-fg-success)'], check: ['var(--cui-bg-warning)', 'var(--cui-fg-warning)'], review: ['var(--cui-bg-warning)', 'var(--cui-fg-warning)'],
+  incidental: ['var(--cui-bg-promo)', 'var(--cui-fg-promo)'], conflict: ['var(--cui-bg-danger)', 'var(--cui-fg-danger)'], neutral: ['var(--cui-bg-neutral)', 'var(--cui-fg-subtle)'],
+  missing: ['var(--cui-bg-neutral)', 'var(--cui-fg-subtle)'], info: ['var(--cui-bg-neutral)', 'var(--cui-fg-subtle)'], promo: ['var(--cui-bg-promo)', 'var(--cui-fg-promo)'], strong: ['var(--cui-bg-strong)', 'var(--cui-fg-on-strong)'],
+};
+const CAT = { bread: 'Bread', grains: 'Grains', 'dairy-eggs': 'Dairy & eggs', drinks: 'Drinks', fats: 'Fats & oils', fish: 'Fish & seafood', produce: 'Fruit & veg', spices: 'Herbs & spices', meat: 'Meat', nuts: 'Nuts & seeds', other: 'Other', sweets: 'Sweets', manual: 'Added by you' };
+const SHORT = { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' };
+const STATUS_LABEL = { pending: 'Not started', scheduled: 'In progress', washout: 'Washout', stopped: 'Stopped', done: 'Reviewed', skipped: 'Skipped' };
+const OUTCOME_LABEL = { tolerated: 'Tolerated', limit: 'Tolerated up to a portion', 'not-tolerated': 'Not tolerated', repeat: 'Repeat', incomplete: 'Incomplete' };
+const g = n => (n >= 1000 ? (Math.round(n / 100) / 10) + ' kg' : Math.round(n) + ' g');
+const nowLocal = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
+const sel = (on, k = 'strong') => on ? { bg: TONE[k][0], fg: TONE[k][1], border: TONE[k][0] } : { bg: 'transparent', fg: 'var(--cui-fg-normal)', border: 'var(--cui-border-normal)' };
+
+class Component extends DCLogic {
+  state = {
+    ready: false, err: null, tab: 'discover', w: typeof window !== 'undefined' ? window.innerWidth : 1200,
+    pantry: [], prepTimes: {}, settings: { glutenFree: true, dairyFree: true, soyFree: true, scaleMax: 10 }, weeks: {}, progress: null, symptoms: [], shopping: { checked: {}, manual: [] },
+    weekStart: null, mode: 'now', sortBy: 'az', slot: 'all', q: '', maxTime: 0, minProtein: 0, dietOnly: false,
+    detailId: null, detailServings: 1, picker: null, confirm: null, toast: null,
+    pantryQ: '', pantryCat: 'all', quick: '',
+    plannerTab: 'week', moveFrom: null, slotMenu: null, manualText: '',
+    jTab: 'challenge', schedDate: '', logDate: '', logLevel: 'none', guidance: null, fErr: null, skipText: '', reviewNote: '',
+    sym: null, tests: [], backend: '', past: null, symStep: null, imports: [], imp: null, sync: { status: 'local', user: null }, authEmail: '', authPw: '', authMode: 'in', authMsg: null, authBusy: false,
+  };
+
+  async componentDidMount() {
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+    try {
+      const base = new URL('lib/', document.baseURI).href;
+      const res = window.__resources || {};
+      const [E, Dm, S, T] = await Promise.all([['engine.js', 'libEngine'], ['data.js', 'libData'], ['store.js', 'libStore'], ['tests.js', 'libTests']].map(([f, id]) => import(res[id] || (base + f))));
+      this.E = E; this.BASE = Dm.DATA; this.S = S; this.T = T; this.base = base; this.res = res;
+      const today = E.todayISO();
+      const loaded = {};
+      for (const k of PERSIST) { const v = await S.get(k); if (v !== undefined) loaded[k] = v; }
+      this.rebuild(loaded.imports || []);
+      if (!loaded.pantry) {
+        const shift = E.diffDays(this.D.extractedAt.slice(0, 10), today);
+        loaded.pantry = this.D.samplePantry.map(p => ({ ...p, expires: p.expires ? E.addDays(p.expires, shift) : null }));
+        S.set('pantry', loaded.pantry);
+      }
+      if (!loaded.progress) { loaded.progress = E.initProgress(this.D); S.set('progress', loaded.progress); }
+      const ws = E.mondayOf(today);
+      const tests = T.runTests(E, this.BASE);
+      const backend = await S.backend();
+      this.unsubS = S.onStatus(x => this.setState({ sync: x }));
+      this.unsubC = S.onRemoteChange(async keys => { const patch = {}; for (const k of keys) if (PERSIST.includes(k)) { const v = await S.get(k); if (v !== undefined) patch[k] = v; } if (Object.keys(patch).length) { this.setState(patch); this.say('Updated from your other device'); } });
+      let oauthMsg = null;
+      try { if (await S.handleRedirect()) { for (const k of PERSIST) { const v = await S.get(k); if (v !== undefined) loaded[k] = v; } setTimeout(() => this.say('Signed in with GitHub — your data now syncs'), 0); } } catch (e) { oauthMsg = { t: e.message, tone: 'conflict' }; }
+      S.init(PERSIST);
+      this.setState({ ...loaded, authMsg: oauthMsg, ready: true, weekStart: ws, schedDate: E.earliestStart(this.D, loaded.progress, today), logDate: today, sym: this.blankSym(), tests, backend });
+    } catch (e) { console.error(e); this.setState({ err: String(e && e.message || e) }); }
+  }
+  componentDidUpdate() { const open = !!(this.state.detailId || this.state.picker || this.state.slotMenu || this.state.past || this.state.confirm); document.body.style.overflow = open ? 'hidden' : ''; }
+  componentWillUnmount() { this.unsubS && this.unsubS(); this.unsubC && this.unsubC(); window.removeEventListener('resize', this.onResize); clearTimeout(this.tt); }
+
+  // AI-generated preview photo (Pollinations, free, no key). Same meal → same seed → same, browser-cached image.
+  mealPhoto(m, w, h) {
+    const main = [...m.ingredients].filter(i => !['salt', 'black-pepper', 'herb-pepper', 'water', 'oregano', 'nigella'].includes(i.id)).sort((a, b) => b.g - a.g).slice(0, 6).map(i => this.ingName(i.id).toLowerCase());
+    const prompt = `${m.nameEn}, single portion, made with ${main.join(', ')}. Realistic overhead food photography, natural daylight, ceramic plate on a light wooden table, no text`;
+    let seed = 0; for (const c of m.id) seed = (seed * 31 + c.charCodeAt(0)) % 100000;
+    return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&seed=${seed}&nologo=true`;
+  }
+  photoEl(m, w, h, lazy) {
+    return React.createElement('img', { key: m.id + w, src: this.mealPhoto(m, w, h), alt: '', loading: lazy ? 'lazy' : undefined, onError: e => { e.target.style.display = 'none'; }, style: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' } });
+  }
+  rebuild(imports) {
+    const B = this.BASE; const imp = imports || [];
+    this.D = { ...B, plans: [...B.plans, ...imp.map(p => ({ id: p.id, name: p.name, title: 'Imported · ' + p.file, file: p.file, kcal: p.kcal, imported: true }))],
+      meals: [...B.meals, ...imp.flatMap(p => p.meals)], ingredients: [...B.ingredients, ...imp.flatMap(p => p.ingredients).filter((x, i, a) => a.findIndex(y => y.id === x.id) === i && !B.ingredients.some(b => b.id === x.id))] };
+    this.idx = this.E.makeIndex(this.D); this.impKey = imp.map(p => p.id).join(',');
+  }
+  async readPdf(file) {
+    if (!file) return;
+    this.setState({ imp: { busy: true, file: file.name } });
+    try {
+      const r = this.res || {}; const b = this.base;
+      const I = await import(r.libImporter || (b + 'importer.js')); I.useEngine(this.E);
+      const text = await I.readPdfText(file, { lib: r.pdfLib || (b + 'vendor/pdf-parse.es.js'), worker: r.pdfWorker || (b + 'vendor/pdf.worker.min.mjs') });
+      const n = (this.state.imports || []).length;
+      const id = 'u' + Date.now().toString(36);
+      const out = I.parsePlanText(text, this.idx, id);
+      const kcals = out.meals.length ? (() => { const byDay = {}; out.meals.forEach(m => byDay[m.day] = (byDay[m.day] || 0) + m.nutrition.kcal); const v = Object.values(byDay); return `${Math.round(Math.min(...v)).toLocaleString('en-GB')}–${Math.round(Math.max(...v)).toLocaleString('en-GB')} kcal/day`; })() : '';
+      const dup = this.D.meals.filter(m => out.meals.some(x => x.namePl === m.namePl && x.nutrition.kcal === m.nutrition.kcal)).length;
+      this.setState({ imp: { busy: false, file: file.name, id, name: `Plan ${this.BASE.plans.length + n + 1}`, meals: out.meals, ingredients: out.newIngredients, warnings: out.warnings, kcal: kcals, dup, open: {} } });
+    } catch (e) { console.error(e); this.setState({ imp: { busy: false, file: file.name, error: 'Couldn’t read this PDF: ' + (e && e.message || e) } }); }
+  }
+  saveImport() {
+    const p = this.state.imp; if (!p || !p.meals || !p.meals.length) return;
+    const meals = p.meals.filter(m => !m.excluded).map(m => { const { excluded, ...rest } = m; return rest; });
+    const used = new Set(meals.flatMap(m => m.ingredients.map(i => i.id)));
+    const rec = { id: p.id, name: p.name.trim() || 'Imported plan', file: p.file, importedAt: this.E.todayISO(), kcal: p.kcal, meals, ingredients: p.ingredients.filter(i => used.has(i.id)) };
+    const imports = [...(this.state.imports || []), rec];
+    this.rebuild(imports); this.save({ imports }); this.setState({ imp: null, tab: 'discover', mode: 'all', q: '' }); this.say(`${meals.length} meals added from ${rec.name}`);
+  }
+  blankSym() { return { at: nowLocal(), mealId: '', bloating: 0, gas: 0, pain: 0, stool: '', diarrhea: false, stress: false, other: '', notes: '' }; }
+  save(patch, cb) { this.setState(patch, () => { for (const k of Object.keys(patch)) if (PERSIST.includes(k)) this.S.set(k, this.state[k]); cb && cb(); }); }
+  say(t) { clearTimeout(this.tt); this.setState({ toast: t }); this.tt = setTimeout(() => this.setState({ toast: null }), 2600); }
+  ask(title, text, yes, fn) { this.setState({ confirm: { title, text, yes, fn } }); }
+  today() { return this.E.todayISO(); }
+  week() { return this.state.weeks[this.state.weekStart] || this.E.emptyWeek(); }
+  setWeek(w) { this.save({ weeks: { ...this.state.weeks, [this.state.weekStart]: w } }); }
+  dateOf(day) { return this.E.addDays(this.state.weekStart, this.E.DAYS.indexOf(day)); }
+  fodCtx(date) {
+    const E = this.E, act = E.activeChallengeOn(this.D, this.state.progress, date || this.today());
+    return { activeStep: act && act.step, testedIds: E.testedIngredientIds(this.D, this.state.progress, act && act.step.id) };
+  }
+  ingName(id) { return (this.idx.byId[id] || {}).en || id; }
+  go(tab) { this.setState({ tab }); window.scrollTo(0, 0); }
+
+  /* ---------- planner actions ---------- */
+  addMeal(mealId, day, slot, confirmed) {
+    const E = this.E, meal = this.idx.mealById[mealId];
+    const v = E.validateMealOnDate(this.D, this.idx, this.state.progress, meal, this.dateOf(day));
+    if (v.blocked) { this.setState({ picker: { ...(this.state.picker || {}), err: v.reason } }); return; }
+    const r = E.assignSlot(this.week(), day, slot, mealId, { confirm: !!confirmed });
+    if (!r.applied) {
+      const cur = this.idx.mealById[this.week()[day][slot].mealId];
+      this.ask('Replace planned meal?', `${E.DAY_LABEL[day]} ${E.SLOT_LABEL[slot].toLowerCase()} already has “${cur.nameEn}”.`, 'Replace', () => this.addMeal(mealId, day, slot, true));
+      return;
+    }
+    this.setWeek(r.week); this.setState({ picker: null });
+    this.say(`Added to ${E.DAY_LABEL[day]} · ${E.SLOT_LABEL[slot]}${v.warn ? ' — with FODMAP flags' : ''}`);
+  }
+  applyTemplate(planId, confirmed) {
+    const E = this.E, r = E.applyTemplate(this.week(), this.D, planId, { confirm: !!confirmed });
+    const plan = this.D.plans.find(p => p.id === planId);
+    if (!r.applied) { this.ask(`Start from ${plan.name}?`, `This replaces ${r.overwrites.length} meal${r.overwrites.length === 1 ? '' : 's'} you’ve already planned this week. ${plan.name} itself stays unchanged.`, 'Replace', () => this.applyTemplate(planId, true)); return; }
+    // check challenge-week conflicts after applying
+    let blocked = 0; const w = r.week;
+    for (const e of E.weekEntries(w)) { const v = E.validateMealOnDate(this.D, this.idx, this.state.progress, this.idx.mealById[e.mealId], this.dateOf(e.day)); if (v.blocked) { w[e.day][e.slot] = null; blocked++; } }
+    this.setWeek(w); this.say(`${plan.name} loaded by weekday${blocked ? ` · ${blocked} meal(s) left out: they conflict with the active challenge` : ''}`);
+  }
+  doMove(to, confirmed) {
+    const E = this.E, from = this.state.moveFrom; const meal = this.idx.mealById[this.week()[from.day][from.slot].mealId];
+    const v = E.validateMealOnDate(this.D, this.idx, this.state.progress, meal, this.dateOf(to.day));
+    if (v.blocked) { this.setState({ fErr: null, moveFrom: null }); this.ask('Can’t move here', v.reason, 'OK', () => {}); return; }
+    const r = E.moveSlot(this.week(), from, to, { confirm: !!confirmed });
+    if (!r.applied && r.overwrite) { this.ask('Replace planned meal?', `${E.DAY_LABEL[to.day]} ${E.SLOT_LABEL[to.slot].toLowerCase()} already has a meal. Moving replaces it.`, 'Replace', () => this.doMove(to, true)); return; }
+    this.setWeek(r.week); this.setState({ moveFrom: null }); this.say('Meal moved');
+  }
+  doDuplicate(confirmed) {
+    const E = this.E, sm = this.state.slotMenu; const days = Object.keys(sm.dupDays || {}).filter(d => sm.dupDays[d]);
+    if (!days.length) return;
+    const meal = this.idx.mealById[this.week()[sm.day][sm.slot].mealId];
+    const ok = days.filter(d => !E.validateMealOnDate(this.D, this.idx, this.state.progress, meal, this.dateOf(d)).blocked);
+    const r = E.duplicateSlot(this.week(), sm, ok, { confirm: !!confirmed });
+    if (!r.applied && r.overwrites && r.overwrites.length) { this.ask('Replace planned meals?', `${r.overwrites.map(d => E.DAY_LABEL[d]).join(', ')} already ${r.overwrites.length === 1 ? 'has' : 'have'} a ${E.SLOT_LABEL[sm.slot].toLowerCase()}.`, 'Replace', () => this.doDuplicate(true)); return; }
+    this.setWeek(r.week); this.setState({ slotMenu: null });
+    this.say(`Copied to ${ok.length} day${ok.length === 1 ? '' : 's'}${ok.length < days.length ? ` · ${days.length - ok.length} blocked by the active challenge` : ''}`);
+  }
+
+  /* ---------- pantry ---------- */
+  updateItem(id, patch) { this.save({ pantry: this.state.pantry.map(p => p.id === id ? { ...p, ...patch, sample: false } : p) }); }
+  addToPantry(rows) {
+    const pantry = [...this.state.pantry];
+    for (const r of rows) {
+      const i = pantry.findIndex(p => p.id === r.id);
+      if (i >= 0) { const p = pantry[i]; pantry[i] = { ...p, sample: false, qty: p.qty != null && r.qty != null && p.unit === r.unit ? p.qty + r.qty : (r.qty != null ? r.qty : p.qty), unit: r.qty != null ? (p.unit === r.unit || p.qty == null ? r.unit : p.unit) : p.unit }; }
+      else pantry.push({ id: r.id, qty: r.qty, unit: r.unit || 'g', expires: null, staple: false });
+    }
+    this.save({ pantry });
+  }
+  cook(mealId) {
+    const meal = this.idx.mealById[mealId]; const scale = this.state.detailServings / (meal.servings || 1);
+    this.ask('Mark ingredients as used?', `Subtracts the quantities for ${this.state.detailServings} portion(s) of “${meal.nameEn}” from your pantry. Staples without a quantity aren’t changed.`, 'Mark as used', () => {
+      const need = {}; meal.ingredients.forEach(i => need[i.id] = (need[i.id] || 0) + i.g * scale);
+      const pantry = this.state.pantry.map(p => (need[p.id] && p.qty != null && p.unit !== 'pcs') ? { ...p, qty: Math.max(0, Math.round(p.qty - need[p.id])), sample: false } : p).filter(p => !(need[p.id] && p.qty === 0 && !p.staple));
+      this.save({ pantry }); this.say('Pantry updated');
+    });
+  }
+  missingToShopping(mealId) {
+    const meal = this.idx.mealById[mealId]; const a = this.E.availability(meal, this.state.pantry, this.state.detailServings / (meal.servings || 1));
+    const miss = a.items.filter(i => i.status === 'missing' || i.status === 'short');
+    if (!miss.length) return;
+    const manual = [...this.state.shopping.manual];
+    for (const i of miss) { const qty = i.status === 'short' ? Math.ceil(i.need - (i.haveQty || 0)) : Math.ceil(i.need); manual.push({ key: 'm' + Date.now() + i.id, id: i.id, text: this.ingName(i.id), qty, unit: 'g', from: meal.nameEn }); }
+    this.save({ shopping: { ...this.state.shopping, manual } }); this.say(`${miss.length} item(s) added to your shopping list`);
+  }
+
+  /* ---------- FODMAP ---------- */
+  fdo(r, okMsg, extra) { if (!r.ok) { this.setState({ fErr: r.reason, guidance: null }); return false; } this.save({ progress: r.progress }); this.setState({ fErr: null, ...(extra || {}) }); if (okMsg) this.say(okMsg); return true; }
+
+  renderVals() {
+    const st = this.state;
+    if (st.ready && (st.imports || []).map(p => p.id).join(',') !== this.impKey) this.rebuild(st.imports);
+    if (!st.ready) return { notReady: true, ready: false, loadingText: st.err ? 'Couldn’t load the app: ' + st.err : 'Loading your plans…' };
+    const E = this.E, D = this.D, idx = this.idx, today = this.today();
+    const narrow = st.w < 860;
+    const prog = st.progress;
+    const nav = [['discover', 'Discover meals', 'Discover'], ['pantry', 'My ingredients', 'Pantry'], ['planner', 'Weekly planner', 'Planner'], ['fodmap', 'FODMAP journey', 'FODMAP']].map(([k, label, short]) => {
+      const on = st.tab === k;
+      return { label, short, onClick: () => this.go(k), bg: on ? 'var(--cui-bg-strong)' : 'transparent', fg: on ? 'var(--cui-fg-on-strong)' : 'var(--cui-fg-normal)', badge: k === 'pantry' ? String(st.pantry.length) : '', badgeFg: on ? 'var(--cui-fg-on-strong-subtle)' : 'var(--cui-fg-subtle)', mobFg: on ? 'var(--cui-fg-normal)' : 'var(--cui-fg-subtle)', mobBar: on ? 'var(--cui-bg-strong)' : 'transparent' };
+    });
+
+    // phase card
+    const cur = E.currentStep(D, prog); const actToday = E.activeChallengeOn(D, prog, today);
+    const phaseCard = (() => {
+      if (!cur) return { kicker: 'Reintroduction', title: 'All challenges reviewed', sub: 'See results', short: 'Complete' };
+      const lbl = D.protocol.categories[cur.step.category].label;
+      if (cur.state.status === 'pending') return { kicker: prog.phase === 'elimination' ? 'Elimination phase' : 'Between challenges', title: `Next: ${lbl}`, sub: `${cur.step.product} · not scheduled`, short: prog.phase === 'elimination' ? 'Elimination' : 'Next: ' + lbl };
+      const dn = Object.keys(cur.state.days).length;
+      return { kicker: 'Challenge week', title: `${lbl} · ${cur.step.product}`, sub: cur.state.status === 'scheduled' ? `Day ${dn} of 3 logged` : STATUS_LABEL[cur.state.status], short: `${lbl} · ${cur.state.status === 'scheduled' ? 'day ' + (dn + 1) : STATUS_LABEL[cur.state.status].toLowerCase()}` };
+    })();
+
+    const base = { sheetAlign: narrow ? 'flex-end' : 'center', sheetPad: narrow ? '0' : '16px', sheetRadius: narrow ? '24px 24px 0 0' : '24px', ready: true, notReady: false, loadingText: '', wide: !narrow, narrow, pad: narrow ? '20px 16px' : '32px 40px', nav, phaseCard,
+      goFodmap: () => this.go('fodmap'), goReview: () => this.go('review'), goPantry: () => this.go('pantry'),
+      reviewNav: { bg: st.tab === 'review' ? 'var(--cui-bg-strong)' : 'transparent', fg: st.tab === 'review' ? 'var(--cui-fg-on-strong)' : 'var(--cui-fg-normal)', sub: `${D.issues.filter(i => i.sev === 'conflict').length} conflicts · ${D.issues.filter(i => i.sev !== 'conflict').length} notes` },
+      isDiscover: st.tab === 'discover', isPantry: st.tab === 'pantry', isPlanner: st.tab === 'planner', isFodmap: st.tab === 'fodmap', isReview: st.tab === 'review',
+      hasToast: !!st.toast, toast: st.toast || '', toastBottom: narrow ? '92px' : '24px',
+    };
+    const badge = (status, label) => ({ label, bg: TONE[status][0], fg: TONE[status][1] });
+    const keyIngr = m => m.ingredients.filter(i => { const c = (idx.byId[i.id] || {}).cat; return c !== 'spices' && c !== 'fats' && i.id !== 'water' && i.id !== 'chicken-stock'; }).sort((a, b) => b.g - a.g).slice(0, 4).map(i => this.ingName(i.id).split(',')[0]).join(' · ');
+
+    /* ---------- DISCOVER ---------- */
+    const ctxToday = this.fodCtx(today);
+    const ranked = E.rankMeals(D, idx, { pantry: st.pantry, today, settings: st.settings, fodmapCtx: ctxToday, mode: 'all', slot: st.slot, maxTime: st.maxTime, minProtein: st.minProtein, q: st.q, dietOnly: st.dietOnly, prepTimes: st.prepTimes });
+    const nowList = ranked.filter(r => r.avail.canMake), almostList = ranked.filter(r => !r.avail.canMake && r.avail.missingCount <= 2);
+    const list0 = st.mode === 'now' ? nowList : st.mode === 'almost' ? almostList : ranked;
+    const list = st.sortBy === 'az' ? [...list0].sort((a, b) => a.meal.nameEn.localeCompare(b.meal.nameEn, 'en', { sensitivity: 'base' })) : list0;
+    const planOf = m => D.plans.find(p => p.id === m.plan).name;
+    const cards = list.map(r => {
+      const m = r.meal; const missing = r.avail.items.filter(i => i.status === 'missing' || i.status === 'short');
+      const prep = st.prepTimes[m.id]; const db = TONE[r.diet.status], fb = TONE[r.fod.status];
+      return { name: m.nameEn, namePl: m.namePl, slotLabel: E.SLOT_LABEL[m.slot] + ' · ' + planOf(m) + ' ' + SHORT[m.day],
+        protein: m.nutrition.protein + ' g', kcal: m.nutrition.kcal + ' kcal', time: prep ? prep + ' min' : 'Time not set', timeFg: prep ? 'var(--cui-fg-normal)' : 'var(--cui-fg-subtle)',
+        keyIngr: keyIngr(m), haveText: `Have ${r.avail.haveCount} of ${r.avail.total}`,
+        missingText: missing.length ? 'Missing: ' + missing.slice(0, 4).map(i => this.ingName(i.id).split(',')[0].toLowerCase() + (i.status === 'short' ? ' (not enough)' : '')).join(', ') + (missing.length > 4 ? ` +${missing.length - 4}` : '') : 'Nothing missing',
+        missingFg: missing.length ? 'var(--cui-fg-danger)' : 'var(--cui-fg-subtle)',
+        reason: r.reasons.join(' · '), dietLabel: r.diet.label, dietBg: db[0], dietFg: db[1], fodLabel: r.fod.label, fodBg: fb[0], fodFg: fb[1],
+        photoEl: this.photoEl(m, 640, 360, true),
+        onOpen: () => this.setState({ detailId: m.id, detailServings: m.servings > 1 ? 1 : 1 }),
+        onAdd: () => this.setState({ picker: { mealId: m.id, day: E.dayKeyOf(today) && (E.diffDays(st.weekStart, today) >= 0 && E.diffDays(today, E.addDays(st.weekStart, 6)) >= 0 ? E.dayKeyOf(today) : 'mon'), slot: m.slot } }) };
+    });
+    const modeDefs = [['now', 'Can make now', nowList.length], ['almost', 'Almost there', almostList.length], ['all', 'Discover meals', ranked.length]];
+    const tracked = st.pantry.length;
+    const disc = {
+      subline: `Ranked by what you can make right now, what expires first and how much of your pantry each meal uses. ${tracked} ingredients in your pantry.`,
+      hasChallenge: !!actToday, challengeText: actToday ? `${D.protocol.categories[actToday.step.category].label} · ${actToday.step.product}. Meals with foods from another FODMAP group are flagged and can’t be planned this week.` : '',
+      modes: modeDefs.map(([k, label, count]) => { const s = sel(st.mode === k); return { label, count: String(count), bg: s.bg, fg: s.fg, border: s.border, onClick: () => this.setState({ mode: k }) }; }),
+      slots: [['all', 'All'], ['lunch', 'Lunch'], ['snack', 'Afternoon snack'], ['dinner', 'Dinner']].map(([k, label]) => ({ label, bg: st.slot === k ? 'var(--cui-bg-normal)' : 'transparent', fg: st.slot === k ? 'var(--cui-fg-normal)' : 'var(--cui-fg-subtle)', onClick: () => this.setState({ slot: k }) })),
+      timeNote: !!st.maxTime, timedCount: String(Object.keys(st.prepTimes).length),
+      resultLine: `${list.length} meal${list.length === 1 ? '' : 's'} · from ${D.plans.length} plans, ${D.meals.length} meals`,
+      cards, empty: list.length === 0,
+      emptyTitle: st.mode === 'now' ? 'Nothing you can fully make yet' : 'No meals match these filters',
+      emptyText: st.mode === 'now' ? (almostList.length ? `${almostList.length} meals are one or two ingredients away.` : 'Add what you have at home, or browse all meals.') : 'Try clearing the search or loosening the filters.',
+      emptyActionLabel: st.mode === 'now' && almostList.length ? 'See almost there' : 'Show all meals',
+      emptyAction: () => this.setState(st.mode === 'now' && almostList.length ? { mode: 'almost' } : { mode: 'all', q: '', maxTime: 0, minProtein: 0, dietOnly: false, slot: 'all' }),
+    };
+
+    /* ---------- PANTRY ---------- */
+    const pq = E.normalizeName(st.pantryQ);
+    const fresh = p => {
+      if (!p.expires) return { label: p.staple ? 'Staple' : 'No date', fg: 'var(--cui-fg-subtle)', days: 9999 };
+      const d = E.diffDays(today, p.expires);
+      if (d < 0) return { label: `Expired ${-d} day${d === -1 ? '' : 's'} ago`, fg: 'var(--cui-fg-danger)', days: d };
+      if (d <= 3) return { label: d === 0 ? 'Use today' : `Use within ${d} day${d === 1 ? '' : 's'}`, fg: 'var(--cui-fg-warning)', days: d };
+      return { label: `Good for ${d} days`, fg: 'var(--cui-fg-success)', days: d };
+    };
+    const catsPresent = [...new Set(st.pantry.map(p => (idx.byId[p.id] || {}).cat || 'other'))];
+    const rows = st.pantry.filter(p => {
+      const ing = idx.byId[p.id] || { en: p.id, pl: [] };
+      if (st.pantryCat === 'soon') { if (fresh(p).days > 3) return false; } else if (st.pantryCat !== 'all' && ing.cat !== st.pantryCat) return false;
+      return !pq || E.normalizeName(ing.en + ' ' + (ing.pl || []).join(' ')).includes(pq);
+    }).sort((a, b) => fresh(a).days - fresh(b).days || this.ingName(a.id).localeCompare(this.ingName(b.id))).map(p => {
+      const ing = idx.byId[p.id] || { en: p.id, pl: [] }; const f = fresh(p);
+      return { name: ing.en, sub: (ing.pl || [])[0] + (p.sample ? ' · sample' : '') + (ing.groups ? ' · challenge food' : ''), qtyStr: p.qty == null ? '' : String(p.qty), unit: p.unit || 'g', expires: p.expires || '', freshLabel: f.label, freshFg: f.fg, staple: !!p.staple,
+        onQty: e => this.updateItem(p.id, { qty: e.target.value === '' ? null : Math.max(0, Number(e.target.value)) }), onUnit: e => this.updateItem(p.id, { unit: e.target.value }),
+        onExp: e => this.updateItem(p.id, { expires: e.target.value || null }), onStaple: e => this.updateItem(p.id, { staple: e.target.checked }),
+        onDelete: () => this.save({ pantry: st.pantry.filter(x => x.id !== p.id) }) };
+    });
+    const parsed = st.quick.trim() ? E.parseQuickAdd(idx, st.quick) : [];
+    const good = parsed.filter(p => p.id);
+    const sampleCount = st.pantry.filter(p => p.sample).length;
+    const pan = {
+      subline: `${st.pantry.length} items · ${st.pantry.filter(p => fresh(p).days <= 3).length} to use soon · ${st.pantry.filter(p => p.staple).length} staples`,
+      hasSample: sampleCount > 0, sampleCount: String(sampleCount),
+      clearSample: () => this.ask('Clear sample items?', `Removes the ${sampleCount} sample items you haven’t edited.`, 'Clear', () => this.save({ pantry: this.state.pantry.filter(p => !p.sample) })),
+      hasPreview: parsed.length > 0,
+      preview: parsed.map(p => p.id ? { text: `${this.ingName(p.id)}${p.qty != null ? ' · ' + p.qty + ' ' + p.unit : ''}`, bg: TONE.ok[0], fg: TONE.ok[1] } : { text: `“${p.name}” not recognised — skipped`, bg: TONE.conflict[0], fg: TONE.conflict[1] }),
+      quickLabel: good.length ? `Add ${good.length} item${good.length === 1 ? '' : 's'}` : 'Add to pantry', quickOpacity: good.length ? '1' : '0.5',
+      commitQuick: () => { if (!good.length) return; this.addToPantry(good); this.setState({ quick: '' }); this.say(`${good.length} item(s) added`); },
+      cats: [['all', 'All'], ['soon', 'Use soon'], ...catsPresent.map(c => [c, CAT[c] || c])].map(([k, label]) => { const s = sel(st.pantryCat === k); return { label, ...s, onClick: () => this.setState({ pantryCat: k }) }; }),
+      rows, empty: rows.length === 0, emptyText: st.pantry.length ? 'No items match.' : 'Your pantry is empty. Use quick add above.',
+      cols: narrow ? 'auto minmax(0,1fr) auto 36px' : 'minmax(0,1.6fr) auto minmax(150px,auto) auto 36px', nameSpan: narrow ? '1 / -1' : 'auto',
+    };
+
+    /* ---------- PLANNER ---------- */
+    const week = this.week();
+    const days = E.DAYS.map(d => {
+      const date = this.dateOf(d); const act = E.activeChallengeOn(D, prog, date);
+      let challenge = '';
+      if (act) {
+        const dayRec = Object.entries(act.state.days).find(([, v]) => v.date === date);
+        const wo = E.washoutStatus(act.state, today);
+        if (dayRec) challenge = `Day ${dayRec[0]} · ${act.step.product} ${dayRec[1].dose}`;
+        else if (wo && E.diffDays(wo.start, date) >= 0 && E.diffDays(date, wo.end) >= 0) challenge = 'Washout · elimination diet';
+        else challenge = `${D.protocol.categories[act.step.category].label} week`;
+      }
+      let kcal = 0, prot = 0;
+      const slots = E.SLOTS.map(s => {
+        const e = week[d][s]; const moving = st.moveFrom && !(st.moveFrom.day === d && st.moveFrom.slot === s);
+        const isSrc = st.moveFrom && st.moveFrom.day === d && st.moveFrom.slot === s;
+        if (!e) return { label: E.SLOT_LABEL[s], name: moving ? 'Move here' : '+ Add', fg: 'var(--cui-fg-subtle)', weight: '550', status: '', statusFg: '', bg: 'transparent', border: moving ? 'var(--cui-border-strong)' : 'var(--cui-border-normal)', borderStyle: 'dashed',
+          onClick: () => st.moveFrom ? this.doMove({ day: d, slot: s }) : this.setState({ picker: { mealId: null, day: d, slot: s, q: '' } }) };
+        const m = idx.mealById[e.mealId]; kcal += m.nutrition.kcal; prot += m.nutrition.protein;
+        const a = E.availability(m, st.pantry, 1 / (m.servings || 1)); const v = E.validateMealOnDate(D, idx, prog, m, date);
+        const fs = v.fod.status;
+        const status = fs === 'incidental' ? 'Challenge-group exposure' : fs === 'conflict' ? 'FODMAP conflict' : a.canMake ? 'Can make now' : `Missing ${a.missingCount}`;
+        const statusFg = fs === 'incidental' ? TONE.promo[1] : fs === 'conflict' ? TONE.conflict[1] : a.canMake ? TONE.ok[1] : 'var(--cui-fg-subtle)';
+        return { label: E.SLOT_LABEL[s], name: m.nameEn, fg: 'var(--cui-fg-normal)', weight: '550', status: status + (fs === 'review' ? ' · review' : ''), statusFg, bg: isSrc ? 'var(--cui-bg-highlight)' : 'var(--cui-bg-normal)', border: moving ? 'var(--cui-border-strong)' : 'var(--cui-border-subtle)', borderStyle: 'solid',
+          onClick: () => st.moveFrom ? (isSrc ? this.setState({ moveFrom: null }) : this.doMove({ day: d, slot: s })) : this.setState({ slotMenu: { day: d, slot: s } }) };
+      });
+      const isToday = date === today;
+      return { label: (isToday ? 'Today · ' : '') + SHORT[d], date: E.fmtDate(date), slots, hasChallenge: !!act, challenge, totals: kcal ? `${kcal} kcal · ${Math.round(prot)} g protein` : 'Nothing planned', bg: act ? '#fdf3fc' : 'var(--cui-bg-subtle)', border: isToday ? 'var(--cui-border-strong)' : act ? 'var(--cui-border-promo)' : 'transparent' };
+    });
+    const entries = E.weekEntries(week);
+    const daysWithMeals = new Set(entries.map(e => e.day)).size || 1;
+    const sumK = entries.reduce((s, e) => s + idx.mealById[e.mealId].nutrition.kcal, 0), sumP = entries.reduce((s, e) => s + idx.mealById[e.mealId].nutrition.protein, 0);
+    const canNow = entries.filter(e => E.availability(idx.mealById[e.mealId], st.pantry).canMake).length;
+    const flagged = entries.filter(e => E.validateMealOnDate(D, idx, prog, idx.mealById[e.mealId], this.dateOf(e.day)).fod.status !== 'ok').length;
+    const unused = E.unusedPantry(week, idx, st.pantry).map(p => { const f = fresh(p); return { label: this.ingName(p.id) + (f.days <= 3 ? ' · ' + f.label.toLowerCase() : ''), fg: f.days <= 3 ? 'var(--cui-fg-warning)' : 'var(--cui-fg-normal)', border: f.days <= 3 ? 'var(--cui-border-warning)' : 'var(--cui-border-subtle)', days: f.days, onClick: () => this.setState({ tab: 'discover', q: this.ingName(p.id).split(',')[0], mode: 'all', slot: 'all' }) }; }).sort((a, b) => a.days - b.days);
+    const pl = {
+      weekLabel: `${E.fmtDate(st.weekStart)} – ${E.fmtDate(E.addDays(st.weekStart, 6))}`,
+      prevWeek: () => this.setState({ weekStart: E.addDays(st.weekStart, -7), moveFrom: null }), nextWeek: () => this.setState({ weekStart: E.addDays(st.weekStart, 7), moveFrom: null }),
+      tabs: [['week', 'Week'], ['shop', 'Shopping list']].map(([k, label]) => ({ label, bg: st.plannerTab === k ? 'var(--cui-bg-normal)' : 'transparent', fg: st.plannerTab === k ? 'var(--cui-fg-normal)' : 'var(--cui-fg-subtle)', onClick: () => this.setState({ plannerTab: k }) })),
+      isWeek: st.plannerTab === 'week', isShop: st.plannerTab === 'shop',
+      templates: D.plans.filter(p => !p.manual).map(p => ({ label: p.name + (p.id === 'p3' ? ' · low-FODMAP' : ''), title: p.title + ' — ' + p.file, onClick: () => this.applyTemplate(p.id) })),
+      clearWeek: () => entries.length && this.ask('Clear this week?', `Removes ${entries.length} planned meals from this week. Your source plans aren’t affected.`, 'Clear', () => this.setWeek(E.emptyWeek())),
+      moving: !!st.moveFrom, movingText: st.moveFrom ? `Moving “${(idx.mealById[(week[st.moveFrom.day][st.moveFrom.slot] || {}).mealId] || {}).nameEn}” — choose a slot` : '', cancelMove: () => this.setState({ moveFrom: null }),
+      days,
+      stats: [{ value: `${entries.length}/21`, label: 'meals planned' }, { value: entries.length ? Math.round(sumK / daysWithMeals).toLocaleString('en-GB') : '—', label: 'kcal per planned day' }, { value: entries.length ? Math.round(sumP / daysWithMeals) + ' g' : '—', label: 'protein per planned day' }, { value: `${canNow}`, label: 'can make from pantry' }, { value: `${flagged}`, label: 'with FODMAP flags' }, { value: `${unused.length}`, label: 'pantry items unused' }, { value: `${E.plantVariety(week, idx)}/30`, label: 'different plant foods (weekly goal)' }, { value: D.guidance.kcal.toLocaleString('en-GB'), label: 'kcal/day target (dietitian)' }],
+      unused, noUnused: unused.length === 0,
+    };
+
+    /* ---------- SHOPPING ---------- */
+    const sh = E.buildShopping(week, idx, st.pantry, today);
+    const checked = st.shopping.checked || {};
+    const ctxW = this.fodCtx(st.weekStart);
+    const groupsMap = {};
+    for (const r of sh.toBuy) {
+      const ing = idx.byId[r.id] || {}; let flag = '', flagFg = '';
+      if (ing.labelCheck) { flag = 'Check the label (composition not in your documents)'; flagFg = TONE.review[1]; }
+      if (ing.groups && ing.certainty === 'listed') { flag = `Listed as a ${ing.groups.join('/')} challenge food`; flagFg = TONE.conflict[1]; }
+      if (ctxW.activeStep && ing.groups && ing.groups.includes(E.categoryGroup(D, ctxW.activeStep.category))) { flag = 'Same FODMAP group as this week’s challenge'; flagFg = TONE.promo[1]; }
+      const key = 'g:' + r.id; const on = !!checked[key];
+      (groupsMap[r.cat] = groupsMap[r.cat] || []).push({ name: r.en, qty: r.buy == null ? 'check' : g(r.buy), sub: `Need ${g(r.need)}${r.have && isFinite(r.have) ? ` · have ${g(r.have)}` : ''} · ${r.meals.length} meal${r.meals.length === 1 ? '' : 's'}`, checked: on, opacity: on ? '0.55' : '1', deco: on ? 'line-through' : 'none', hasFlag: !!flag, flag, flagFg, onToggle: () => this.save({ shopping: { ...st.shopping, checked: { ...checked, [key]: !on } } }) });
+    }
+    const manualItems = st.shopping.manual.map(m => { const on = !!checked[m.key]; return { name: m.text, qty: m.qty ? g(m.qty) : '', sub: m.from ? 'Missing for ' + m.from : 'Added by you', checked: on, opacity: on ? '0.55' : '1', deco: on ? 'line-through' : 'none', hasFlag: false, flag: '', flagFg: '', onToggle: () => this.save({ shopping: { ...st.shopping, checked: { ...checked, [m.key]: !on } } }) }; });
+    const groups = Object.keys(groupsMap).sort().map(c => ({ label: CAT[c] || c, items: groupsMap[c] }));
+    if (manualItems.length) groups.push({ label: CAT.manual, items: manualItems });
+    const nChecked = Object.values(checked).filter(Boolean).length;
+    const expiring = st.pantry.filter(p => fresh(p).days <= 3).map(p => ({ name: this.ingName(p.id), when: fresh(p).label, days: fresh(p).days })).sort((a, b) => a.days - b.days);
+    const addManual = () => { const t = st.manualText.trim(); if (!t) return; const pq2 = E.parseQuickAdd(idx, t)[0]; this.save({ shopping: { ...st.shopping, manual: [...st.shopping.manual, { key: 'm' + Date.now(), id: pq2 && pq2.id, text: t, qty: null }] } }); this.setState({ manualText: '' }); };
+    const shop = {
+      subline: entries.length ? `From ${entries.length} planned meals, minus what’s in your pantry.` : 'Plan some meals to build a list.',
+      groups, empty: groups.length === 0, emptyText: entries.length ? 'Your pantry covers everything planned this week.' : 'Nothing planned for this week yet.',
+      addManual, toPantryLabel: nChecked ? `Add ${nChecked} checked to pantry` : 'Add checked to pantry', toPantryOpacity: nChecked ? '1' : '0.5',
+      toPantry: () => {
+        if (!nChecked) return; const rowsAdd = [];
+        for (const r of sh.toBuy) if (checked['g:' + r.id] && r.buy) rowsAdd.push({ id: r.id, qty: r.buy, unit: 'g' });
+        for (const m of st.shopping.manual) if (checked[m.key] && m.id) rowsAdd.push({ id: m.id, qty: m.qty || null, unit: 'g' });
+        this.addToPantry(rowsAdd);
+        this.save({ shopping: { checked: {}, manual: st.shopping.manual.filter(m => !checked[m.key]) } }); this.say(`${rowsAdd.length} item(s) added to your pantry`);
+      },
+      hasExpiring: expiring.length > 0, expiring,
+      coveredText: sh.covered.length ? sh.covered.map(r => r.en).join(', ') : 'Nothing yet.',
+    };
+
+    /* ---------- FODMAP ---------- */
+    let fjCur = {}; let recipe = null;
+    if (cur) {
+      const s = cur.step, ss = cur.state; const lbl = D.protocol.categories[s.category].label; const w = E.stepWindow(ss); const wo = E.washoutStatus(ss, today);
+      const logged = Object.keys(ss.days).map(Number); const nextDay = logged.length ? Math.max(...logged) + 1 : 1;
+      const dayTiles = [1, 2, 3, 4].map(n => {
+        const rec = ss.days[n]; const dose = E.getDose(D, s.id, n, prog);
+        const isNext = ss.status === 'scheduled' && n === nextDay;
+        const lv = rec ? { none: 'No symptoms', acceptable: 'Acceptable symptoms', severe: 'Strong symptoms — stopped' }[rec.level] : '';
+        return { label: n === 4 ? 'Day 4 · optional' : 'Day ' + n, dose: dose.amount != null ? dose.text : (n === 4 ? 'Usual portion' : dose.text), state: rec ? `${E.fmtDate(rec.date)} · ${lv}` : isNext ? (ss.hold && n > 1 ? 'Next · hold portion (see guidance)' : 'Next') : n === 4 ? 'Only if usual portion > day 3' : 'Upcoming',
+          stateFg: rec ? (rec.level === 'none' ? TONE.ok[1] : rec.level === 'acceptable' ? TONE.review[1] : TONE.conflict[1]) : 'var(--cui-fg-subtle)', border: isNext ? 'var(--cui-border-promo)' : 'transparent', opacity: n === 4 && !rec && !isNext ? '0.7' : '1' };
+      });
+      const reviewable = ['washout', 'stopped'].includes(ss.status) && wo && wo.complete;
+      const outcomes = (ss.status === 'stopped' ? ['not-tolerated', 'repeat'] : ['tolerated', 'limit', 'not-tolerated', 'repeat']).map(o => ({ label: OUTCOME_LABEL[o], title: { tolerated: 'Unlocks the next challenge', limit: 'Record the portion in the note', 'not-tolerated': 'Exclude for now; retest in about 3 months', repeat: 'Run this challenge again; nothing advances' }[o],
+        onClick: () => { const r = E.reviewStep(D, prog, s.id, o, today, st.reviewNote); if (this.fdo(r, r.advanced ? 'Review saved — next challenge unlocked' : 'Saved — this challenge will be repeated', { reviewNote: '', guidance: null })) this.setState({ schedDate: E.earliestStart(D, r.progress, today) }); } }));
+      const earliest = E.earliestStart(D, prog, today);
+      const isFirst = prog.phase === 'elimination' && ss.status === 'pending' && D.protocol.steps.every(x => x.id === s.id || ['pending', 'skipped'].includes(prog.steps[x.id].status));
+      const elimDays = prog.eliminationStart ? E.diffDays(prog.eliminationStart, today) : null;
+      fjCur = {
+        isFirst, elimStart: prog.eliminationStart || '', relief: !!prog.reliefConfirmed,
+        onElimStart: e => this.save({ progress: { ...prog, eliminationStart: e.target.value || null } }, () => { const p2 = this.state.progress; if (p2.eliminationStart) { const m = E.addDays(p2.eliminationStart, 14); this.setState({ schedDate: E.diffDays(this.state.schedDate, m) > 0 ? m : this.state.schedDate }); } }),
+        onRelief: e => this.save({ progress: { ...prog, reliefConfirmed: e.target.checked } }),
+        elimText: elimDays == null ? 'Not set' : elimDays < 14 ? `Day ${elimDays + 1} · monitoring until ${E.fmtDate(E.addDays(prog.eliminationStart, 14))}` : elimDays > 42 ? `Day ${elimDays + 1} · longer than the 6-week maximum` : `Day ${elimDays + 1} of elimination`,
+        elimFg: elimDays == null ? 'var(--cui-fg-subtle)' : elimDays < 14 ? TONE.review[1] : elimDays > 42 ? TONE.conflict[1] : TONE.ok[1],
+        kicker: ss.status === 'pending' ? `Up next · ${D.protocol.steps.indexOf(s) + 1} of ${D.protocol.steps.length}` : `Challenge ${D.protocol.steps.indexOf(s) + 1} of ${D.protocol.steps.length}`,
+        product: s.product, category: lbl, productPl: s.productPl, statusLabel: STATUS_LABEL[ss.status],
+        windowText: w ? `${E.fmtDate(w.start)} – ${E.fmtDate(w.end)}` : 'Not scheduled', days: dayTiles,
+        washBorder: ['washout', 'stopped'].includes(ss.status) ? 'var(--cui-border-promo)' : 'transparent',
+        washTitle: wo ? (wo.complete ? 'Complete' : `${wo.daysLeft} day${wo.daysLeft === 1 ? '' : 's'} left`) : `${'2–3'} days`,
+        washSub: wo ? `Until ${E.fmtDate(wo.end)} · minimum ${wo.minDays} days${wo.needsSettled && !ss.settled ? ' + symptoms settled' : ''}` : 'Back to full elimination after the challenge days',
+        needsConfirm: ss.status === 'pending' && !!s.needsConfirm && !prog.confirmed[s.id], confirmText: s.needsConfirm || '',
+        onConfirm: () => this.save({ progress: { ...prog, confirmed: { ...prog.confirmed, [s.id]: true } } }),
+        onSkip: () => { if (this.fdo(E.skipStep(D, prog, s.id, st.skipText), `${s.product} skipped`, { skipText: '' })) {} },
+        needsDose: ss.status === 'pending' && !!s.doseConflict && !prog.doseChoice[s.id], doseText: s.doseConflict || '',
+        onDoseTable: () => this.save({ progress: { ...prog, doseChoice: { ...prog.doseChoice, [s.id]: 'table' } } }),
+        onDoseRecipe: () => this.save({ progress: { ...prog, doseChoice: { ...prog.doseChoice, [s.id]: 'recipe' } } }),
+        canSchedule: ss.status === 'pending' && !(s.needsConfirm && !prog.confirmed[s.id]) && !(s.doseConflict && !prog.doseChoice[s.id]),
+        earliestText: `Earliest start: ${E.fmtDate(isFirst && prog.eliminationStart && E.diffDays(earliest, E.addDays(prog.eliminationStart, 14)) > 0 ? E.addDays(prog.eliminationStart, 14) : earliest)}. The week runs 7 days from the start date and holds only this challenge.`,
+        onSchedule: () => { const r = E.scheduleStep(D, prog, s.id, st.schedDate, today); if (this.fdo(r, 'Challenge week scheduled')) this.setState({ logDate: E.diffDays(st.schedDate, today) >= 0 ? today : st.schedDate }); },
+        canLog: ss.status === 'scheduled' && nextDay <= 4,
+        logTitle: `Log day ${nextDay} · ${E.getDose(D, s.id, Math.min(nextDay, 4), prog).text}`,
+        logSub: nextDay === 4 ? 'Optional. Only if your usual portion is larger than day 3. Enter how you felt after eating it.' : ss.hold ? 'You had acceptable symptoms — your plan says not to increase. Log only if you and your dietitian decided to continue with this food.' : 'Eat the prescribed portion, then record how you felt.',
+        logButton: `Save day ${nextDay}`,
+        onLog: () => { const r = E.logChallengeDay(D, prog, s.id, nextDay, st.logDate, st.logLevel); if (this.fdo(r, `Day ${nextDay} saved`, { guidance: r.guidance, logLevel: 'none', logDate: E.addDays(st.logDate, 1) })) {} },
+        canEnd: ss.status === 'scheduled' && logged.length >= 3,
+        onEnd: () => this.fdo(E.endChallengeDays(D, prog, s.id), 'Washout started', { guidance: 'Washout: back to the full elimination diet. Review the outcome when it ends.' }),
+        onIncomplete: () => this.ask('Mark this test incomplete?', 'The challenge resets so you can run it again. Nothing advances.', 'Mark incomplete', () => this.fdo(E.reviewStep(D, prog, s.id, 'incomplete', today, 'Marked incomplete'), 'Test reset')),
+        needsSettle: ss.status === 'stopped' && !ss.settled, onSettle: () => this.save({ progress: E.markSettled(prog, s.id) }),
+        canReview: reviewable, outcomes,
+        waiting: ['washout', 'stopped'].includes(ss.status) && !reviewable && !(ss.status === 'stopped' && !ss.settled),
+        waitingText: wo ? `Stay on the full elimination diet until ${E.fmtDate(wo.end)}. You can review the outcome after that.` : '',
+      };
+      recipe = s.recipe;
+    }
+    const seq = D.protocol.steps.map((s, i) => {
+      const ss = prog.steps[s.id]; const w = E.stepWindow(ss); const isCur = cur && cur.step.id === s.id;
+      let status = STATUS_LABEL[ss.status], tone = 'neutral';
+      if (ss.status === 'done') { status = OUTCOME_LABEL[ss.outcome]; tone = ss.outcome === 'not-tolerated' ? 'conflict' : ss.outcome === 'limit' ? 'review' : 'ok'; }
+      else if (ss.status === 'skipped') tone = 'neutral'; else if (isCur && ss.status !== 'pending') tone = 'promo'; else if (s.needsConfirm && !prog.confirmed[s.id]) { status = 'Needs confirmation'; tone = 'review'; } else if (s.doseConflict && !prog.doseChoice[s.id]) { status = 'Dose conflict'; tone = 'conflict'; }
+      const doses = s.doses.map(d => d.amount + ' ' + d.unit).join(' / ');
+      const symCount = st.symptoms.filter(x => x.stepId === s.id).length; const hasDays = Object.keys(ss.days || {}).length > 0;
+      const firstDate = hasDays ? ss.days[Math.min(...Object.keys(ss.days).map(Number))].date : null;
+      const acts = { canPast: ss.status === 'pending', onPast: () => this.setState({ past: { stepId: s.id, weekStart: '', days: {}, outcome: null, note: '', err: null } }),
+        canSym: hasDays, symCount: String(symCount), onSym: () => this.setState({ jTab: 'diary', symStep: s.id, sym: { ...this.blankSym(), at: firstDate + 'T18:00' } }),
+        canUndo: !!ss.recordedPast, onUndo: () => this.ask('Remove this past result?', `Resets ${s.product} to not started. Symptom entries you logged stay in your diary.`, 'Remove', () => this.fdo(E.undoPastRecord(this.state.progress, s.id), 'Record removed')) };
+      return { ...acts, n: String(i + 1), product: s.product, sub: `${D.protocol.categories[s.category].label} · ${doses}${w ? ' · ' + E.fmtDate(w.start) : ''}${ss.retestAfter ? ' · retest after ' + E.fmtDate(ss.retestAfter) : ''}${ss.skipReason ? ' · ' + ss.skipReason : ''}${ss.recordedPast ? ' · recorded afterwards' : ''}${ss.note ? ' · ' + ss.note : ''}`, status, bg: TONE[tone][0], fg: TONE[tone][1], dotBg: isCur ? TONE.promo[1] : TONE.neutral[0], dotFg: isCur ? '#fff' : TONE.neutral[1] };
+    });
+    // symptom diary
+    const sym = st.sym || this.blankSym();
+    const symDate = (sym.at || '').slice(0, 10);
+    const actSym = symDate ? E.challengeForDate(D, prog, symDate) : null;
+    const symDay = actSym ? Object.entries(actSym.state.days).find(([, v]) => v.date === symDate) : null;
+    const setSym = patch => this.setState({ sym: { ...sym, ...patch } });
+    const max = st.settings.scaleMax || 10;
+    const symWeek = st.weeks[E.mondayOf(symDate || today)] || E.emptyWeek();
+    const symMeals = symDate ? E.SLOTS.map(s => symWeek[E.dayKeyOf(symDate)][s]).filter(Boolean).map(e => idx.mealById[e.mealId]) : [];
+    const mealOptions = [...symMeals.map(m => ({ value: m.id, label: 'Planned · ' + m.nameEn })), ...D.meals.filter(m => !symMeals.includes(m)).sort((a, b) => a.nameEn.localeCompare(b.nameEn, 'en', { sensitivity: 'base' })).map(m => ({ value: m.id, label: `${m.nameEn} (${planOf(m)} ${SHORT[m.day]})` }))];
+    const summary = E.symptomSummary(D, prog, st.symptoms).map(x => ({ label: x.label, text: `${x.count} entr${x.count === 1 ? 'y' : 'ies'} · bloating ${x.bloating ?? '—'} · gas ${x.gas ?? '—'} · pain ${x.pain ?? '—'}` }));
+    const history = [...st.symptoms].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 30).map(h => ({
+      when: new Date(h.at).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+      scores: `Bloating ${h.bloating}/${h.max || 10} · Gas ${h.gas}/${h.max || 10} · Pain ${h.pain}/${h.max || 10}${h.stool ? ' · Bristol ' + h.stool : ''}${h.diarrhea ? ' · diarrhoea' : ''}${h.stress ? ' · stress/poor sleep' : ''}`,
+      meta: [h.mealName, h.other, h.notes].filter(Boolean).join(' · ') || 'No notes',
+      hasChallenge: !!h.stepId, challenge: h.stepId ? `${h.challengeLabel}${h.day ? ' · day ' + h.day + ' · ' + h.dose : ''}` : '',
+      onDelete: () => this.ask('Delete this entry?', 'This can’t be undone.', 'Delete', () => this.save({ symptoms: this.state.symptoms.filter(x => x.id !== h.id) })),
+    }));
+    const symVm = {
+      at: sym.at, onAt: e => setSym({ at: e.target.value }), mealId: sym.mealId, onMeal: e => setSym({ mealId: e.target.value }), mealOptions,
+      linkText: actSym ? (symDay ? `Linked to ${D.protocol.categories[actSym.step.category].label} challenge · day ${symDay[0]} · ${actSym.step.product} ${symDay[1].dose}` : `Linked to the ${D.protocol.categories[actSym.step.category].label} challenge week (no challenge dose logged that day)`) : 'No challenge active on this date.',
+      linkBg: actSym ? TONE.promo[0] : TONE.neutral[0], linkFg: actSym ? TONE.promo[1] : TONE.neutral[1],
+      scales: [['bloating', 'Bloating'], ['gas', 'Gas'], ['pain', 'Abdominal pain']].map(([k, label]) => ({ label, value: String(Math.min(sym[k], max)), max: String(max), onChange: e => setSym({ [k]: Number(e.target.value) }) })),
+      stool: sym.stool, onStool: e => setSym({ stool: e.target.value }), diarrhea: !!sym.diarrhea, onDiarrhea: e => setSym({ diarrhea: e.target.checked }), stress: !!sym.stress, onStress: e => setSym({ stress: e.target.checked }),
+      other: sym.other, onOther: e => setSym({ other: e.target.value }), notes: sym.notes, onNotes: e => setSym({ notes: e.target.value }),
+      onSave: () => {
+        const meal = sym.mealId ? idx.mealById[sym.mealId] : null;
+        const entry = { ...sym, id: 's' + Date.now(), max, mealName: meal ? meal.nameEn : '', stepId: actSym ? actSym.step.id : null, challengeLabel: actSym ? `${D.protocol.categories[actSym.step.category].label} · ${actSym.step.product}` : '', day: symDay ? Number(symDay[0]) : null, dose: symDay ? symDay[1].dose : '' };
+        this.save({ symptoms: [...st.symptoms, entry] }); this.setState({ sym: this.blankSym() }); this.say('Entry saved');
+      },
+      summary, noSummary: summary.length === 0, history,
+      hasDayChips: !!st.symStep && !!prog.steps[st.symStep] && Object.keys(prog.steps[st.symStep].days).length > 0,
+      dayChipsLabel: st.symStep ? 'Challenge days · ' + (D.protocol.steps.find(x => x.id === st.symStep) || {}).product : '',
+      dayChips: st.symStep && prog.steps[st.symStep] ? Object.entries(prog.steps[st.symStep].days).map(([n, v]) => { const on = symDate === v.date; const x = sel(on, 'promo'); return { label: `Day ${n} · ${E.fmtDate(v.date)}`, ...x, onClick: () => setSym({ at: v.date + (sym.at || 'T18:00').slice(10) }) }; }) : [],
+      clearDayChips: () => this.setState({ symStep: null }),
+    };
+    const lvl = [['none', 'No symptoms', 'ok'], ['acceptable', 'Acceptable symptoms', 'review'], ['severe', 'Strong, unacceptable', 'conflict']];
+    const fj = {
+      phaseLabel: { elimination: 'Elimination phase', reintroduction: 'Reintroduction phase', complete: 'Reintroduction complete' }[prog.phase],
+      subline: `One FODMAP group per week, three challenge days, then washout. Driven by ${D.protocol.file}.`,
+      tabs: [['challenge', 'Challenge'], ['diary', 'Symptom diary'], ['guide', 'Recommendations'], ['rules', 'Protocol']].map(([k, label]) => ({ label, bg: st.jTab === k ? 'var(--cui-bg-normal)' : 'transparent', fg: st.jTab === k ? 'var(--cui-fg-normal)' : 'var(--cui-fg-subtle)', onClick: () => this.setState({ jTab: k }) })),
+      isChallenge: st.jTab === 'challenge', isDiary: st.jTab === 'diary', isRules: st.jTab === 'rules', isGuide: st.jTab === 'guide',
+      hasErr: !!st.fErr, err: st.fErr || '', clearErr: () => this.setState({ fErr: null }),
+      hasGuidance: !!st.guidance, guidance: st.guidance || '', clearGuidance: () => this.setState({ guidance: null }),
+      hasCurrent: !!cur, done: !cur, cur: fjCur, schedDate: st.schedDate, logDate: st.logDate,
+      levels: lvl.map(([k, label, t]) => { const on = st.logLevel === k; return { label, bg: on ? TONE[t][0] : 'transparent', fg: on ? TONE[t][1] : 'var(--cui-fg-normal)', border: on ? TONE[t][1] : 'var(--cui-border-normal)', onClick: () => this.setState({ logLevel: k }) }; }),
+      seq, hasRecipe: !!recipe, recipe: recipe || { nameEn: '', namePl: '', flags: [], ingredients: [], steps: [] },
+      durationNote: D.protocol.durationNote, rules: D.protocol.rules.map(r => r.t), schedule: D.protocol.schedule,
+      alts: Object.entries(D.protocol.alternatives).map(([k, v]) => ({ label: { mannitol: 'Mannitol', sorbitol: 'Sorbitol', gos: 'GOS', fructose: 'Fructose', fructans: 'Fructans', lactose: 'Lactose' }[k], items: v.join(', ') })),
+    };
+
+    const G = D.guidance; const psy = E.psylliumDose(st.settings.psylliumStart, today);
+    const gd = { ...G, triggers: G.triggers, labels: G.labels.join(', '), hidden: G.hidden.join(', ').toLowerCase(),
+      psyStart: st.settings.psylliumStart || '', onPsyStart: e => this.save({ settings: { ...st.settings, psylliumStart: e.target.value || null } }),
+      psyToday: psy ? (psy.day >= 1 ? `Day ${psy.day}: ${psy.text}. Drink at least 250–300 ml with each dose.` : psy.text) : 'Set a start date to see today’s dose from your schedule.' };
+
+    /* ---------- REVIEW ---------- */
+    const dietCount = k => D.meals.filter(m => E.dietAssess(m, idx, st.settings).status === k).length;
+    const passed = st.tests.filter(t => t.pass).length;
+    const rv = {
+      plans: [...D.plans.map(p => ({ kicker: p.name, title: p.title, sub: `${D.meals.filter(m => m.plan === p.id).length} ${p.manual ? 'snacks' : 'meals'} · ${p.kcal}`, file: p.file + (p.note ? ' — ' + p.note : '') })),
+        { kicker: 'Reintroduction', title: '7 FODMAP categories · 10 foods', sub: 'Doses, test recipes, rules', file: D.protocol.file }, { kicker: 'Recommendations', title: 'Low-FODMAP · 1,800 kcal', sub: `Food table for ${D.ingredients.filter(i => i.table).length} ingredients, triggers, stages, supplements`, file: D.guidance.file }],
+      issues: D.issues.map(i => ({ ...i, sev: { conflict: 'Conflict', review: 'Review', missing: 'Missing', info: 'Note' }[i.sev], bg: TONE[i.sev][0], fg: TONE[i.sev][1] })),
+      protocol: D.protocol.steps.map((s, i) => ({ n: String(i + 1), cat: D.protocol.categories[s.category].label, product: `${s.product} (${s.productPl})`, doses: s.doses.map((d, j) => `D${j + 1} ${d.text}`).join(' · ') + ' · D4 optional', hasNote: !!(s.doseConflict || s.needsConfirm), note: s.doseConflict ? 'Dose table and recipe disagree' : s.needsConfirm ? 'Second food in group — confirm' : '' })),
+      toggles: [['glutenFree', 'Gluten-free'], ['dairyFree', 'Dairy-free'], ['soyFree', 'Soy-free']].map(([k, label]) => ({ label, on: !!st.settings[k], onChange: e => this.save({ settings: { ...st.settings, [k]: e.target.checked } }) })).concat([{ label: `Meals that fit: ${dietCount('ok')} · check labels: ${dietCount('check')} · don’t fit: ${dietCount('conflict')}`, on: false, onChange: () => {} }]).slice(0, 3),
+      scales: [[5, '0–5'], [10, '0–10']].map(([v, label]) => { const s = sel(st.settings.scaleMax === v); return { label, bg: s.bg, fg: s.fg, onClick: () => this.save({ settings: { ...st.settings, scaleMax: v } }) }; }),
+      tests: st.tests.map(t => ({ name: t.name, detail: t.detail, mark: t.pass ? 'Pass' : 'Fail', fg: t.pass ? TONE.ok[1] : TONE.conflict[1] })),
+      testsSummary: `${passed}/${st.tests.length} passing`, testsFg: passed === st.tests.length ? TONE.ok[1] : TONE.conflict[1],
+      runTests: () => { this.setState({ tests: this.T.runTests(E, D) }); this.say('Tests run'); },
+      storageText: `Saved in this browser (${st.backend}) and, when you’re signed in, in your Supabase project. Meals that fit your diet rules: ${dietCount('ok')} fit · ${dietCount('check')} need label checks · ${dietCount('conflict')} don’t fit.`,
+      exportData: () => { const blob = new Blob([JSON.stringify(Object.fromEntries(PERSIST.map(k => [k, this.state[k]])), null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `meal-planner-backup-${today}.json`; a.click(); },
+      importData: e => { const f = e.target.files && e.target.files[0]; if (!f) return; f.text().then(t => { try { const o = JSON.parse(t); const patch = {}; for (const k of PERSIST) if (o[k] !== undefined) patch[k] = o[k]; this.save(patch); this.say('Backup imported'); } catch { this.say('That file isn’t a valid backup'); } }); },
+      resetData: () => this.ask('Reset everything?', 'Clears your pantry, planner, challenge progress, symptom diary and shopping list in this browser. Export a backup first if you might need it.', 'Reset', () => {
+        const shift = E.diffDays(D.extractedAt.slice(0, 10), today);
+        this.save({ pantry: D.samplePantry.map(p => ({ ...p, expires: p.expires ? E.addDays(p.expires, shift) : null })), prepTimes: {}, weeks: {}, progress: E.initProgress(D), symptoms: [], shopping: { checked: {}, manual: [] }, settings: { glutenFree: true, dairyFree: true, soyFree: true, scaleMax: 10 } });
+        this.say('Reset complete');
+      }),
+    };
+
+    /* ---------- DETAIL ---------- */
+    let dt = {};
+    if (st.detailId) {
+      const m = idx.mealById[st.detailId]; const sv = st.detailServings; const scale = sv / (m.servings || 1);
+      const a = E.availability(m, st.pantry, scale); const diet = E.dietAssess(m, idx, st.settings); const fod = E.fodmapAssess(m, idx, D, ctxToday);
+      const plan = D.plans.find(p => p.id === m.plan);
+      const alerts = [];
+      (m.issues || []).forEach(t => alerts.push({ title: 'Source issue.', text: t, bg: TONE.review[0], fg: TONE.review[1] }));
+      if (diet.conflicts.length) alerts.push({ title: 'Diet.', text: 'Doesn’t fit your rules: ' + [...new Set(diet.conflicts.map(c => `${c.en} (${c.reason})`))].join(', ') + '.', bg: TONE.conflict[0], fg: TONE.conflict[1] });
+      if (diet.checks.length) alerts.push({ title: 'Check labels.', text: [...new Set(diet.checks.map(c => `${c.en} — ${c.reason}`))].join('; ') + '.', bg: TONE.review[0], fg: TONE.review[1] });
+      fod.notes.forEach(n => alerts.push({ title: 'FODMAP.', text: n.text, bg: TONE[n.level][0], fg: TONE[n.level][1] }));
+      if (fod.status === 'ok') alerts.push({ title: 'FODMAP.', text: actToday ? 'No foods from your reintroduction lists. OK for this challenge week.' : 'No foods from your reintroduction lists.', bg: TONE.ok[0], fg: TONE.ok[1] });
+      const hints = E.cookingTimeHints(m);
+      const missN = a.items.filter(i => i.status === 'missing' || i.status === 'short').length;
+      const n = m.nutrition, f = scale * (m.servings || 1) / (m.servings || 1);
+      dt = {
+        source: m.manual ? `${plan.name} · added by hand` : `${plan.name} · ${E.DAY_LABEL[m.day]} (${E.DAY_PL[m.day]}) · ${m.origLabel.charAt(0) + m.origLabel.slice(1).toLowerCase()} ${m.time}`,
+        slotLabel: E.SLOT_LABEL[m.slot], name: m.nameEn, namePl: m.namePl, photoEl: this.photoEl(m, 1200, 750, false),
+        dietLabel: diet.label, dietBg: TONE[diet.status][0], dietFg: TONE[diet.status][1], fodLabel: fod.label, fodBg: TONE[fod.status][0], fodFg: TONE[fod.status][1],
+        nutrition: [['kcal', n.kcal], ['protein', n.protein + ' g'], ['fat', n.fat + ' g'], ['carbs', n.carbs + ' g'], ['fibre', n.fibre + ' g']].map(([label, value]) => ({ label: label + (sv > 1 ? ' · 1 portion' : ''), value: String(value) })),
+        servings: String(sv), less: () => this.setState({ detailServings: Math.max(1, sv - 1) }), more: () => this.setState({ detailServings: Math.min(12, sv + 1) }),
+        servingsNote: 'Weights are for raw products. ' + m.servingsNote + (m.servings > 1 ? ` Quantities shown for ${sv} of ${m.servings} portions.` : ''),
+        timeHint: hints.length ? `Times in the method: ${hints.join(', ')}.` : 'No times mentioned in the method.',
+        prep: st.prepTimes[m.id] != null ? String(st.prepTimes[m.id]) : '', onPrep: e => { const v = e.target.value; const pt = { ...st.prepTimes }; if (v === '') delete pt[m.id]; else pt[m.id] = Math.max(0, Number(v)); this.save({ prepTimes: pt }); },
+        alerts,
+        availText: a.canMake ? 'You have everything' : `Missing ${a.missingCount} of ${a.total}`, availFg: a.canMake ? TONE.ok[1] : TONE.conflict[1],
+        ingredients: m.ingredients.map(ri => { const it = a.items.find(x => x.id === ri.id) || { status: 'have' };
+          const stx = ri.id === 'water' ? ['Not tracked', 'var(--cui-fg-subtle)', 'var(--cui-bg-neutral-strong)'] : { have: ['In pantry', TONE.ok[1], TONE.ok[1]], 'have-uncounted': ['In pantry (pcs)', TONE.ok[1], TONE.ok[1]], short: [`Have ${g(it.haveQty)}`, TONE.review[1], TONE.review[1]], missing: ['Missing', TONE.conflict[1], TONE.conflict[1]] }[it.status];
+          return { name: this.ingName(ri.id) + (ri.variant === 'green' ? ' (green)' : ''), orig: `${ri.orig} · ${String(ri.count).replace('.', ',')} × ${ri.unit}`, qty: g(ri.g * scale), status: stx[0], statusFg: stx[1], dot: stx[2] }; }),
+        hasNote: !!m.note, note: m.note || '', instructions: m.instructions || 'No method given in the source.',
+        subs: (m.substitutions || []).map(s => s.text), noSubs: !(m.substitutions || []).length,
+        onAdd: () => this.setState({ picker: { mealId: m.id, day: E.diffDays(st.weekStart, today) >= 0 && E.diffDays(today, E.addDays(st.weekStart, 6)) >= 0 ? E.dayKeyOf(today) : 'mon', slot: m.slot } }),
+        onMissing: () => this.missingToShopping(m.id), missingLabel: missN ? `Add ${missN} missing to list` : 'Nothing missing', missingOpacity: missN ? '1' : '0.5',
+        onCook: () => this.cook(m.id),
+      };
+    }
+
+    /* ---------- PICKER ---------- */
+    let pk = {};
+    if (st.picker) {
+      const p = st.picker;
+      if (p.mealId) {
+        const m = idx.mealById[p.mealId]; const date = this.dateOf(p.day); const v = E.validateMealOnDate(D, idx, prog, m, date);
+        const curE = week[p.day][p.slot];
+        const notes = v.blocked ? [{ text: 'Blocked. ' + v.reason, bg: TONE.conflict[0], fg: TONE.conflict[1] }] : v.fod.notes.map(n => ({ text: n.text, bg: TONE[n.level][0], fg: TONE[n.level][1] }));
+        pk = { title: 'Add to plan', sub: m.nameEn, chooseSlot: true, chooseMeal: false, weekLabel: `${E.fmtDate(st.weekStart)} – ${E.fmtDate(E.addDays(st.weekStart, 6))}`,
+          days: E.DAYS.map(d => { const s = sel(p.day === d); const act = E.activeChallengeOn(D, prog, this.dateOf(d)); return { label: SHORT[d], date: E.fmtDate(this.dateOf(d)) + (act ? ' ·C' : ''), ...s, onClick: () => this.setState({ picker: { ...p, day: d } }) }; }),
+          slots: E.SLOTS.map(s => { const x = sel(p.slot === s); return { label: E.SLOT_LABEL[s] + (s === m.slot ? ' · original' : ''), ...x, onClick: () => this.setState({ picker: { ...p, slot: s } }) }; }),
+          hasCurrent: !!curE, currentText: curE ? `Currently planned: ${idx.mealById[curE.mealId].nameEn}. Adding asks before replacing.` : '',
+          notes, addLabel: v.blocked ? 'Can’t add — see why above' : v.warn ? 'Add — I’ve read the flags' : 'Add to plan', addOpacity: v.blocked ? '0.4' : '1',
+          onAdd: () => { if (!v.blocked) this.addMeal(m.id, p.day, p.slot); } };
+      } else {
+        const r = E.rankMeals(D, idx, { pantry: st.pantry, today, settings: st.settings, fodmapCtx: this.fodCtx(this.dateOf(p.day)), mode: 'all', slot: p.slot, q: p.q || '' }).slice(0, 40).sort((a, b) => a.meal.nameEn.localeCompare(b.meal.nameEn, 'en', { sensitivity: 'base' }));
+        pk = { title: `${E.DAY_LABEL[p.day]} · ${E.SLOT_LABEL[p.slot]}`, sub: 'Sorted A–Z. Meals from any plan can be combined.', chooseSlot: false, chooseMeal: true, q: p.q || '', onQ: e => this.setState({ picker: { ...p, q: e.target.value, err: null } }),
+          hasErr: !!p.err, err: p.err || '',
+          meals: r.map(x => ({ name: x.meal.nameEn, sub: `${planOf(x.meal)} ${SHORT[x.meal.day]} · ${x.meal.nutrition.protein} g protein · ${x.meal.nutrition.kcal} kcal`, avail: x.avail.canMake ? 'Can make now' : `Missing ${x.avail.missingCount}`, availBg: x.avail.canMake ? TONE.ok[0] : TONE.neutral[0], availFg: x.avail.canMake ? TONE.ok[1] : TONE.neutral[1], fod: x.fod.label, fodBg: TONE[x.fod.status][0], fodFg: TONE[x.fod.status][1], onPick: () => this.addMeal(x.meal.id, p.day, p.slot) })) };
+      }
+    }
+
+    /* ---------- SLOT MENU ---------- */
+    let sm = {};
+    if (st.slotMenu) {
+      const { day, slot } = st.slotMenu; const e = week[day][slot];
+      if (e) {
+        const m = idx.mealById[e.mealId]; const v = E.validateMealOnDate(D, idx, prog, m, this.dateOf(day));
+        const dd = st.slotMenu.dupDays || {};
+        sm = { where: `${E.DAY_LABEL[day]} ${E.fmtDate(this.dateOf(day))} · ${E.SLOT_LABEL[slot]}`, name: m.nameEn,
+          notes: v.fod.notes.map(n => ({ text: n.text, bg: TONE[n.level][0], fg: TONE[n.level][1] })),
+          dup: !!st.slotMenu.dupOpen,
+          dupDays: E.DAYS.filter(d => d !== day).map(d => { const s = sel(!!dd[d]); return { label: SHORT[d], ...s, onClick: () => this.setState({ slotMenu: { ...st.slotMenu, dupDays: { ...dd, [d]: !dd[d] } } }) }; }),
+          onDupApply: () => this.doDuplicate(),
+          actions: [
+            { label: 'View recipe', fg: 'var(--cui-fg-normal)', onClick: () => this.setState({ slotMenu: null, detailId: m.id, detailServings: 1 }) },
+            { label: 'Move', fg: 'var(--cui-fg-normal)', onClick: () => this.setState({ slotMenu: null, moveFrom: { day, slot } }) },
+            { label: 'Copy to days', fg: 'var(--cui-fg-normal)', onClick: () => this.setState({ slotMenu: { ...st.slotMenu, dupOpen: !st.slotMenu.dupOpen } }) },
+            { label: 'Change meal', fg: 'var(--cui-fg-normal)', onClick: () => this.setState({ slotMenu: null, picker: { mealId: null, day, slot, q: '' } }) },
+            { label: 'Remove', fg: 'var(--cui-fg-danger)', onClick: () => { this.setWeek(E.assignSlot(week, day, slot, null, { confirm: true }).week); this.setState({ slotMenu: null }); this.say('Meal removed'); } },
+          ] };
+      }
+    }
+
+    const SY = st.sync || {}; const signedIn = !!SY.user;
+    const syncLabel = { local: 'Saved on this device', 'signed-out': 'Not syncing', syncing: 'Syncing…', synced: 'Synced', offline: 'Offline — will sync later', error: 'Sync problem' }[SY.status] || '';
+    const syncTone = { synced: 'ok', syncing: 'neutral', offline: 'review', error: 'conflict', 'signed-out': 'review' }[SY.status] || 'neutral';
+    const doAuth = async () => {
+      if (!st.authEmail || !st.authPw) { this.setState({ authMsg: { t: 'Enter your email and a password.', tone: 'conflict' } }); return; }
+      this.setState({ authBusy: true, authMsg: null });
+      try {
+        if (st.authMode === 'up') { const r = await this.S.signUp(st.authEmail.trim(), st.authPw); if (r.confirm) { this.setState({ authMsg: { t: 'Check your email and click the confirmation link, then come back and sign in. The link may open a blank page — that’s fine.', tone: 'ok' }, authMode: 'in' }); return; } }
+        else await this.S.signIn(st.authEmail.trim(), st.authPw);
+        this.S.init(PERSIST); this.setState({ authPw: '', authMsg: null }); this.say('Signed in — your data now syncs');
+      } catch (e) { this.setState({ authMsg: { t: e.message, tone: 'conflict' } }); }
+      finally { this.setState({ authBusy: false }); }
+    };
+    const syncVm = { signedIn, signedOut: !signedIn, email: SY.user ? SY.user.email : '', label: syncLabel, bg: TONE[syncTone][0], fg: TONE[syncTone][1],
+      last: SY.lastSync ? 'Last synced ' + new Date(SY.lastSync).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '', hasErr: !!SY.lastError, err: SY.lastError || '',
+      authEmail: st.authEmail, onEmail: e => this.setState({ authEmail: e.target.value }), authPw: st.authPw, onPw: e => this.setState({ authPw: e.target.value }), onPwKey: e => { if (e.key === 'Enter') doAuth(); },
+      title: st.authMode === 'up' ? 'Create your account' : 'Sign in to sync', button: st.authBusy ? 'Please wait…' : st.authMode === 'up' ? 'Create account' : 'Sign in', onAuth: doAuth,
+      switchText: st.authMode === 'up' ? 'Already have an account? Sign in' : 'New here? Create an account', onSwitch: () => this.setState({ authMode: st.authMode === 'up' ? 'in' : 'up', authMsg: null }),
+      hasMsg: !!st.authMsg, msg: st.authMsg ? st.authMsg.t : '', msgBg: st.authMsg ? TONE[st.authMsg.tone][0] : '', msgFg: st.authMsg ? TONE[st.authMsg.tone][1] : '',
+      onGithub: () => this.S.signInWithProvider('github'), onSyncNow: () => this.S.syncNow(), onSignOut: () => this.ask('Sign out?', 'Your data stays on this device and in the cloud. Changes made while signed out won’t sync until you sign in again.', 'Sign out', () => this.S.signOut()),
+      short: signedIn ? syncLabel : 'Sync off' };
+    let ps = {};
+    if (st.past) {
+      const P = st.past; const s = D.protocol.steps.find(x => x.id === P.stepId);
+      const setP = patch => this.setState({ past: { ...P, ...patch, err: null } });
+      const lvls = [['', 'Not done', 'neutral'], ['none', 'No symptoms', 'ok'], ['acceptable', 'Acceptable', 'review'], ['severe', 'Strong', 'conflict']];
+      const daysArr = [1, 2, 3, 4].map(n => {
+        const d = P.days[n] || {}; const auto = P.weekStart && P.days[1] && P.days[1].date ? E.addDays(P.days[1].date, n - 1) : (P.weekStart ? E.addDays(P.weekStart, n - 1) : '');
+        const date = d.date || auto;
+        return { label: n === 4 ? 'Day 4 · optional' : 'Day ' + n, prescribed: E.getDose(D, s.id, n, prog).text, date, amount: d.amount || '', opacity: d.level ? '1' : '0.75',
+          onDate: e => setP({ days: { ...P.days, [n]: { ...d, date: e.target.value } } }), onAmount: e => setP({ days: { ...P.days, [n]: { ...d, date, amount: e.target.value } } }),
+          levels: lvls.map(([k, label, t]) => { const on = (d.level || '') === k; return { label, bg: on ? TONE[t][0] : 'transparent', fg: on ? TONE[t][1] : 'var(--cui-fg-normal)', border: on ? TONE[t][1] : 'var(--cui-border-normal)', onClick: () => setP({ days: { ...P.days, [n]: { ...d, date, level: k } } }) }; }) };
+      });
+      const save = withSym => {
+        const days = daysArr.map((d, i) => ({ day: i + 1, date: d.date, level: (P.days[i + 1] || {}).level || '', amount: d.amount })).filter(d => d.level);
+        const r = E.recordPastChallenge(D, prog, s.id, { weekStart: P.weekStart, days, outcome: P.outcome, note: P.note }, today);
+        if (!r.ok) { this.setState({ past: { ...P, err: r.reason } }); return; }
+        this.save({ progress: r.progress }); this.setState({ past: null, fErr: null, schedDate: E.earliestStart(D, r.progress, today) });
+        this.say(r.note || `${s.product} recorded`);
+        if (withSym) this.setState({ jTab: 'diary', symStep: r.note ? null : s.id, sym: { ...this.blankSym(), at: days[0].date + 'T18:00' } });
+      };
+      ps = { product: s.product, category: D.protocol.categories[s.category].label, today, weekStart: P.weekStart,
+        windowText: P.weekStart ? `${E.fmtDate(P.weekStart)} – ${E.fmtDate(E.addDays(P.weekStart, 6))}` : 'Days must fall inside this 7-day week',
+        onWeekStart: e => setP({ weekStart: e.target.value, days: Object.fromEntries(Object.entries(P.days).map(([k, v]) => [k, { ...v, date: '' }])) }),
+        days: daysArr, note: P.note, onNote: e => setP({ note: e.target.value }),
+        outcomes: [['tolerated', 'Tolerated', 'ok'], ['limit', 'Tolerated up to a portion', 'review'], ['not-tolerated', 'Not tolerated', 'conflict'], ['incomplete', 'Incomplete', 'neutral']].map(([k, label, t]) => { const on = P.outcome === k; return { label, bg: on ? TONE[t][0] : 'transparent', fg: on ? TONE[t][1] : 'var(--cui-fg-normal)', border: on ? TONE[t][1] : 'var(--cui-border-normal)', onClick: () => setP({ outcome: k }) }; }),
+        hasErr: !!P.err, err: P.err || '', onSave: () => save(false), onSaveSym: () => save(true) };
+    }
+    const IM = st.imp; let imVm = { has: false };
+    if (IM) {
+      const meals = IM.meals || [];
+      const kept = meals.filter(m => !m.excluded).length;
+      imVm = { has: true, busy: !!IM.busy, err: IM.error || '', hasErr: !!IM.error, file: IM.file, ready: !!IM.meals, name: IM.name || '', onName: e => this.setState({ imp: { ...IM, name: e.target.value } }),
+        summary: IM.meals ? `${meals.length} meals found${IM.kcal ? ' · ' + IM.kcal : ''} · ${IM.ingredients.length} new ingredient${IM.ingredients.length === 1 ? '' : 's'}${IM.dup ? ` · ${IM.dup} look identical to meals you already have` : ''}` : '',
+        warnings: (IM.warnings || []).concat(IM.ingredients && IM.ingredients.length ? [`New ingredients aren’t in your documents’ list, so meals using them are marked for review: ${IM.ingredients.map(i => i.en).join(', ')}.`] : []),
+        hasWarn: (IM.warnings || []).length > 0 || (IM.ingredients || []).length > 0, empty: IM.meals && !meals.length,
+        rows: meals.map((m, i) => ({ day: SHORT[m.day] + ' · ' + E.SLOT_LABEL[m.slot], name: m.namePl, meta: `${m.nutrition.kcal} kcal · ${m.nutrition.protein} g protein · ${m.ingredients.length} ingredients`, ings: m.ingredients.map(x => `${x.orig} ${x.g} g`).join(' · '), checked: !m.excluded, opacity: m.excluded ? '0.5' : '1',
+          onToggle: () => { const ms = [...meals]; ms[i] = { ...m, excluded: !m.excluded }; this.setState({ imp: { ...IM, meals: ms } }); } })),
+        saveLabel: `Add ${kept} meal${kept === 1 ? '' : 's'} to my meals`, saveOpacity: kept ? '1' : '0.5', onSave: () => this.saveImport(), onCancel: () => this.setState({ imp: null }) };
+    }
+    const importedList = (st.imports || []).map(p => ({ name: p.name, sub: `${p.meals.length} meals · ${p.file} · imported ${E.fmtDate(p.importedAt)}`,
+      onRemove: () => this.ask(`Remove ${p.name}?`, 'Its meals disappear from Discover. Planned meals from it will be removed from your weeks.', 'Remove', () => {
+        const ids = new Set(p.meals.map(m => m.id)); const weeks = {};
+        for (const [k, w] of Object.entries(this.state.weeks)) { const nw = JSON.parse(JSON.stringify(w)); for (const d of E.DAYS) for (const sl of E.SLOTS) if (nw[d] && nw[d][sl] && ids.has(nw[d][sl].mealId)) nw[d][sl] = null; weeks[k] = nw; }
+        const imports = this.state.imports.filter(x => x.id !== p.id); this.rebuild(imports); this.save({ imports, weeks }); this.say(`${p.name} removed`);
+      }) }));
+    const cfm = st.confirm;
+    return {
+      ...base, syncVm, imVm, importedList, hasImported: importedList.length > 0, onPdf: e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; this.readPdf(f); }, disc, pan, pl, shop, fj, gd, rv, ps, hasPast: !!st.past, closePast: () => this.setState({ past: null }), dt, pk, sm, sym: symVm,
+      q: st.q, onQ: e => this.setState({ q: e.target.value }), maxTimeStr: String(st.maxTime), onMaxTime: e => this.setState({ maxTime: Number(e.target.value) }),
+      sortStr: st.sortBy, onSort: e => this.setState({ sortBy: e.target.value }), minProteinStr: String(st.minProtein), onMinProtein: e => this.setState({ minProtein: Number(e.target.value) }), dietOnly: st.dietOnly, onDietOnly: e => this.setState({ dietOnly: e.target.checked }),
+      quick: st.quick, onQuick: e => this.setState({ quick: e.target.value }), pantryQ: st.pantryQ, onPantryQ: e => this.setState({ pantryQ: e.target.value }),
+      manualText: st.manualText, onManualText: e => this.setState({ manualText: e.target.value }), onManualKey: e => { if (e.key === 'Enter') addManual(); },
+      skipText: st.skipText, onSkipText: e => this.setState({ skipText: e.target.value }), reviewNote: st.reviewNote, onReviewNote: e => this.setState({ reviewNote: e.target.value }),
+      onSchedDate: e => this.setState({ schedDate: e.target.value }), onLogDate: e => this.setState({ logDate: e.target.value }),
+      hasDetail: !!st.detailId && !!dt.name, closeDetail: () => this.setState({ detailId: null }),
+      hasPicker: !!st.picker, closePicker: () => this.setState({ picker: null }),
+      hasSlotMenu: !!st.slotMenu && !!sm.name, closeSlotMenu: () => this.setState({ slotMenu: null }),
+      hasConfirm: !!cfm, cf: cfm ? { title: cfm.title, text: cfm.text, yes: cfm.yes, onYes: () => { this.setState({ confirm: null }); cfm.fn(); } } : {}, cancelConfirm: () => this.setState({ confirm: null }),
+    };
+  }
+}
+</script>
+</body>
+</html>
