@@ -1,0 +1,243 @@
+/* SumUp Circuit UI — Colors & Type Tokens
+ * Source: @sumup-oss/circuit-ui design-tokens (light theme + shared)
+ * https://github.com/sumup-oss/circuit-ui/tree/main/packages/design-tokens
+ *
+ * Primary tokens are prefixed --cui- for compatibility with Circuit UI.
+ * Friendly aliases (--bg, --fg, --h1, etc.) follow at the bottom.
+ */
+
+/* -------- Fonts: Sofia Sans Semi Condensed (SIL Open Font License), locally hosted in /fonts/ -------- */
+@font-face {
+  font-family: "Sofia Sans Semi Condensed";
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url("fonts/SofiaSansSemiCondensed-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Sofia Sans Semi Condensed";
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url("fonts/SofiaSansSemiCondensed-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Sofia Sans Display";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("fonts/SofiaSansSemiCondensed-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Sofia Sans Display";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("fonts/SofiaSansSemiCondensed-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+
+:root {
+  /* ============ COLOR — Background ============ */
+  --cui-bg-normal: #fbfbf9;            /* page background — warm off-white */
+  --cui-bg-normal-hovered: #f1f0e9;
+  --cui-bg-normal-pressed: #e3e2d6;
+  --cui-bg-subtle: #f5f4ed;            /* sub-surface / card */
+  --cui-bg-subtle-hovered: #f0eee7;
+  --cui-bg-subtle-pressed: #e8e6dc;
+  --cui-bg-highlight: #e8e6dc;
+  --cui-bg-strong: #1e1c1c;            /* near-black, primary CTA bg */
+  --cui-bg-strong-hovered: #3f3a3a;
+  --cui-bg-strong-pressed: #756c6c;
+  --cui-bg-accent: #f5f4ed;
+  --cui-bg-accent-strong: #1e1c1c;
+  --cui-bg-neutral: #f0eee7;
+  --cui-bg-neutral-strong: #c7c3b3;
+  --cui-bg-success: #dff4e2;
+  --cui-bg-success-strong: #1e862d;
+  --cui-bg-warning: #feeed5;
+  --cui-bg-warning-strong: #da7603;
+  --cui-bg-danger: #ffdacc;
+  --cui-bg-danger-strong: #d23f04;
+  --cui-bg-promo: #ffe4fd;
+  --cui-bg-promo-strong: #b342a9;
+  --cui-bg-brand: #ff61f2;             /* THE SumUp pink */
+  --cui-bg-brand-hovered: #eb58df;
+  --cui-bg-brand-pressed: #da4ece;
+  --cui-bg-overlay: rgba(30, 28, 28, 0.7);
+  --cui-bg-elevated: #fbfbf9;
+
+  /* ============ COLOR — Foreground ============ */
+  --cui-fg-normal: #1e1c1c;
+  --cui-fg-subtle: #706464;
+  --cui-fg-placeholder: #76716b;
+  --cui-fg-on-strong: #fbfbf9;
+  --cui-fg-on-strong-subtle: rgba(251, 251, 249, 0.7);
+  --cui-fg-accent: #1e1c1c;
+  --cui-fg-neutral: #786464;
+  --cui-fg-success: #3c7411;
+  --cui-fg-warning: #a65a03;
+  --cui-fg-danger: #b13606;
+  --cui-fg-promo: #a33e9a;
+  --cui-fg-brand: #ff61f2;
+
+  /* ============ COLOR — Border ============ */
+  --cui-border-normal: #d0cdc3;
+  --cui-border-subtle: #e3e2d6;
+  --cui-border-divider: #f1f1eb;
+  --cui-border-strong: #1e1c1c;
+  --cui-border-accent: #1e1c1c;
+  --cui-border-success: #3c7411;
+  --cui-border-warning: #a65a03;
+  --cui-border-danger: #b13606;
+  --cui-border-promo: #a63f9d;
+  --cui-border-brand: #ff61f2;
+  --cui-border-focus: #1e1c1c;
+
+  /* ============ TYPE — Stacks ============ */
+  --cui-font-stack-default: "Sofia Sans Semi Condensed", Arial, system-ui, sans-serif;
+  --cui-font-stack-display: "Sofia Sans Display", Arial Black, Arial, system-ui, sans-serif;
+  --cui-font-stack-mono: Menlo, Consolas, Monaco, "Liberation Mono", monospace;
+
+  /* ============ TYPE — Weights (variable axis) ============ */
+  --cui-font-weight-regular: 375;
+  --cui-font-weight-semibold: 550;
+  --cui-font-weight-bold: 650;
+
+  /* ============ TYPE — Scale (rem) ============ */
+  --cui-display-xl-font-size: 6rem;     --cui-display-xl-line-height: 90%;
+  --cui-display-l-font-size: 4rem;      --cui-display-l-line-height: 85%;
+  --cui-display-m-font-size: 3rem;      --cui-display-m-line-height: 90%;
+  --cui-display-s-font-size: 2.5rem;    --cui-display-s-line-height: 95%;
+  --cui-headline-l-font-size: 2.0625rem; --cui-headline-l-line-height: 2.125rem;
+  --cui-headline-m-font-size: 1.5625rem; --cui-headline-m-line-height: 1.625rem;
+  --cui-headline-s-font-size: 1.1875rem; --cui-headline-s-line-height: 1.375rem;
+  --cui-body-l-font-size: 1.3125rem;    --cui-body-l-line-height: 1.625rem;
+  --cui-body-m-font-size: 1.0625rem;    --cui-body-m-line-height: 1.375rem;
+  --cui-body-s-font-size: 0.9375rem;    --cui-body-s-line-height: 1.25rem;
+  --cui-compact-l-font-size: 1.125rem;  --cui-compact-l-line-height: 1.5rem;
+  --cui-compact-m-font-size: 1rem;      --cui-compact-m-line-height: 1.125rem;
+  --cui-compact-s-font-size: 0.875rem;  --cui-compact-s-line-height: 1rem;
+  --cui-numeral-xl-font-size: 4rem;     --cui-numeral-xl-line-height: 4rem;
+  --cui-numeral-l-font-size: 2.5rem;    --cui-numeral-l-line-height: 2.5rem;
+  --cui-numeral-m-font-size: 1.5625rem; --cui-numeral-m-line-height: 1.75rem;
+
+  /* ============ SPACING ============ */
+  --cui-spacings-bit: 4px;
+  --cui-spacings-byte: 8px;
+  --cui-spacings-kilo: 12px;
+  --cui-spacings-mega: 16px;
+  --cui-spacings-giga: 24px;
+  --cui-spacings-tera: 32px;
+  --cui-spacings-peta: 40px;
+  --cui-spacings-exa: 48px;
+  --cui-spacings-zetta: 56px;
+  --cui-spacings-yotta: 72px;
+  --cui-spacings-ronna: 96px;
+
+  /* ============ RADII ============ */
+  --cui-border-radius-bit: 4px;
+  --cui-border-radius-byte: 10px;
+  --cui-border-radius-kilo: 12px;
+  --cui-border-radius-mega: 16px;
+  --cui-border-radius-giga: 24px;
+  --cui-border-radius-tera: 32px;
+  --cui-border-radius-peta: 40px;
+  --cui-border-radius-circle: 100%;
+  --cui-border-radius-pill: 999999px;
+
+  /* ============ MOTION ============ */
+  --cui-transitions-default: 120ms ease-in-out;
+  --cui-transitions-slow: 300ms ease-in-out;
+
+  /* ============ FRIENDLY ALIASES ============ */
+  --bg: var(--cui-bg-normal);
+  --bg-card: var(--cui-bg-subtle);
+  --bg-strong: var(--cui-bg-strong);
+  --bg-brand: var(--cui-bg-brand);
+  --fg1: var(--cui-fg-normal);
+  --fg2: var(--cui-fg-subtle);
+  --fg-on-strong: var(--cui-fg-on-strong);
+  --border: var(--cui-border-subtle);
+  --border-strong: var(--cui-border-strong);
+  --divider: var(--cui-border-divider);
+
+  --font-narrow: var(--cui-font-stack-default);
+  --font-black: var(--cui-font-stack-display);
+  --weight-regular: 375;
+  --weight-semibold: 550;
+  --weight-bold: 650;
+}
+
+/* ============ SEMANTIC TYPE ============ */
+html, body {
+  font-family: var(--cui-font-stack-default);
+  font-weight: var(--cui-font-weight-regular);
+  color: var(--cui-fg-normal);
+  background: var(--cui-bg-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.cui-display-l, .display-l {
+  font-family: var(--cui-font-stack-display);
+  font-size: var(--cui-display-l-font-size);
+  line-height: var(--cui-display-l-line-height);
+  font-weight: bold;
+  letter-spacing: -0.01em;
+}
+.cui-display-m, .display-m {
+  font-family: var(--cui-font-stack-display);
+  font-size: var(--cui-display-m-font-size);
+  line-height: var(--cui-display-m-line-height);
+  font-weight: bold;
+  letter-spacing: -0.01em;
+}
+.cui-display-s, .display-s {
+  font-family: var(--cui-font-stack-display);
+  font-size: var(--cui-display-s-font-size);
+  line-height: var(--cui-display-s-line-height);
+  font-weight: bold;
+}
+.cui-headline-l, h1 {
+  font-family: var(--cui-font-stack-default);
+  font-size: var(--cui-headline-l-font-size);
+  line-height: var(--cui-headline-l-line-height);
+  font-weight: var(--cui-font-weight-bold);
+}
+.cui-headline-m, h2 {
+  font-family: var(--cui-font-stack-default);
+  font-size: var(--cui-headline-m-font-size);
+  line-height: var(--cui-headline-m-line-height);
+  font-weight: var(--cui-font-weight-bold);
+}
+.cui-headline-s, h3 {
+  font-family: var(--cui-font-stack-default);
+  font-size: var(--cui-headline-s-font-size);
+  line-height: var(--cui-headline-s-line-height);
+  font-weight: var(--cui-font-weight-bold);
+}
+.cui-body-l { font-size: var(--cui-body-l-font-size); line-height: var(--cui-body-l-line-height); }
+.cui-body-m, p { font-size: var(--cui-body-m-font-size); line-height: var(--cui-body-m-line-height); }
+.cui-body-s, small { font-size: var(--cui-body-s-font-size); line-height: var(--cui-body-s-line-height); }
+.cui-compact-m { font-size: var(--cui-compact-m-font-size); line-height: var(--cui-compact-m-line-height); }
+.cui-compact-s { font-size: var(--cui-compact-s-font-size); line-height: var(--cui-compact-s-line-height); }
+.cui-numeral-l {
+  font-family: var(--cui-font-stack-display);
+  font-size: var(--cui-numeral-l-font-size);
+  line-height: var(--cui-numeral-l-line-height);
+  font-weight: bold;
+}
+strong, b { font-weight: var(--cui-font-weight-bold); }
+
+code {
+  font-family: var(--cui-font-stack-mono);
+  font-size: 0.95em;
+  background: var(--cui-bg-subtle);
+  padding: 2px 6px;
+  border-radius: var(--cui-border-radius-bit);
+}
