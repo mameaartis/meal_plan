@@ -122,7 +122,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
   <sc-if value="{{ recVm.has }}" hint-placeholder-val="{{ false }}">
   <div role="region" aria-labelledby="rec-title" style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px;border:1px solid var(--cui-border-strong)">
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
-      <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:13px;font-weight:650;text-transform:uppercase;letter-spacing:0.04em;color:var(--cui-fg-subtle)">Saved to My recipes</span><b id="rec-title" style="font-size:18px">Write a recipe</b></div>
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:13px;font-weight:650;text-transform:uppercase;letter-spacing:0.04em;color:var(--cui-fg-subtle)">{{ recVm.kicker }}</span><b id="rec-title" style="font-size:18px">{{ recVm.title }}</b></div>
       <button onClick="{{ recVm.onCancel }}" aria-label="Close recipe form" style="border:none;background:var(--cui-bg-normal);border-radius:999px;width:36px;height:36px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center"><img src="icons/close.svg" alt="" style="width:18px;height:18px"></button>
     </div>
     <label for="rec-text" style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:550">Recipe</span><span id="rec-help" style="font-size:13px;color:var(--cui-fg-subtle)">First line is the name. Then one ingredient per line, with its amount in grams where you can. Sentences after that become the method.</span></label>
@@ -159,7 +159,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
     </sc-if>
     <sc-if value="{{ recVm.hasErr }}" hint-placeholder-val="{{ false }}"><div role="alert" style="border-radius:12px;padding:10px 12px;font-size:14px;background:var(--cui-bg-danger);color:var(--cui-fg-danger)">{{ recVm.err }}</div></sc-if>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <button onClick="{{ recVm.onSave }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550">Save recipe</button>
+      <button onClick="{{ recVm.onSave }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550">{{ recVm.saveLabel }}</button>
       <button onClick="{{ recVm.onCancel }}" style="border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550">Cancel</button>
       <span style="font-size:13px;color:var(--cui-fg-subtle)">Ingredients not in your documents’ list are saved as new, with diet and FODMAP status unknown.</span>
     </div>
@@ -950,7 +950,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
         <sc-if value="{{ dt.noSubs }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:14px;color:var(--cui-fg-subtle)">None given in the source. Any swap that might change FODMAP content needs your dietitian’s review.</p></sc-if>
       </div>
       <sc-if value="{{ dt.isMine }}" hint-placeholder-val="{{ false }}">
-        <div style="border-top:1px solid var(--cui-border-subtle);padding-top:16px"><button onClick="{{ dt.onDelete }}" style="border:1px solid var(--cui-border-danger);color:var(--cui-fg-danger);background:transparent;cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Delete recipe</button></div>
+        <div style="border-top:1px solid var(--cui-border-subtle);padding-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button onClick="{{ dt.onEdit }}" style="border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Edit recipe</button><button onClick="{{ dt.onDelete }}" style="border:1px solid var(--cui-border-danger);color:var(--cui-fg-danger);background:transparent;cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Delete recipe</button></div>
       </sc-if>
     </div>
     <div style="position:sticky;bottom:0;margin-top:auto;background:var(--cui-bg-normal);border-top:1px solid var(--cui-border-subtle);padding:12px 20px;display:flex;gap:8px;flex-wrap:wrap">
@@ -1181,10 +1181,19 @@ class Component extends DCLogic {
     const imports = [...(this.state.imports || []), rec];
     this.rebuild(imports); this.save({ imports }); this.setState({ imp: null, tab: 'discover', mode: 'all', q: '' }); this.say(`${meals.length} meals added from ${rec.name}`);
   }
-  async openRecipe() {
-    if (this.state.rec) return;
+  async openRecipe(editId) {
+    if (this.state.rec && !editId) return;
     try {
       if (!this.I) { const r = this.res || {}; this.I = await import(r.libImporter || (this.base + 'importer.js')); this.I.useEngine(this.E); }
+      const m = editId && this.idx.mealById[editId];
+      if (m) {
+        // Older recipes have no stored text: rebuild it from the saved name, ingredient lines and method.
+        const text = m.sourceText || [m.nameEn, ...m.ingredients.map(i => i.orig), m.instructions].filter(Boolean).join('\n');
+        const entered = m.nutritionEntered || ['kcal', 'protein', 'fat', 'carbs', 'fibre'].filter(k => m.nutrition[k]);
+        this.setState({ detailId: null, tab: 'discover', rec: { editId, text, slot: m.slot, n: Object.fromEntries(['kcal', 'protein', 'fat', 'carbs', 'fibre'].map(k => [k, entered.includes(k) ? String(m.nutrition[k]) : ''])), err: null } },
+          () => { const el = document.getElementById('rec-text'); if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); } });
+        return;
+      }
       this.setState({ rec: { text: '', slot: 'lunch', n: { kcal: '', protein: '', fat: '', carbs: '', fibre: '' }, err: null } });
     } catch (e) { console.error(e); this.say('Couldn’t open the recipe form: ' + (e && e.message || e)); }
   }
@@ -1202,15 +1211,16 @@ class Component extends DCLogic {
     const noG = out.ingredients.filter(i => !i.g && this.idx.byId[i.id] && this.idx.byId[i.id].portion).map(i => i.orig);
     if (noG.length) issues.push(`No amount in grams for ${noG.join(', ')}, so FODMAP portion limits couldn’t be checked.`);
     const slugId = E.normalizeName(out.name).replace(/ /g, '-').slice(0, 30) || 'recipe';
-    const meal = { id: `mine-${slugId}-${Date.now().toString(36)}`, plan: 'mine', day: 'mon', dayIndex: 0, slot: R.slot, origLabel: E.SLOT_LABEL[R.slot].toUpperCase(), time: '', namePl: out.name, nameEn: out.name,
-      nutrition: Object.fromEntries(['kcal', 'protein', 'fat', 'carbs', 'fibre'].map(k => [k, nv(k) || 0])), ingredients: out.ingredients, instructions: out.instructions, servings: 1, servingsNote: '1 portion.', manual: true, issues };
+    const meal = { id: R.editId || `mine-${slugId}-${Date.now().toString(36)}`, plan: 'mine', day: 'mon', dayIndex: 0, slot: R.slot, origLabel: E.SLOT_LABEL[R.slot].toUpperCase(), time: '', namePl: out.name, nameEn: out.name,
+      nutrition: Object.fromEntries(['kcal', 'protein', 'fat', 'carbs', 'fibre'].map(k => [k, nv(k) || 0])), ingredients: out.ingredients, instructions: out.instructions, servings: 1, servingsNote: '1 portion.', manual: true, issues, sourceText: R.text.trim(), nutritionEntered: entered };
     const all = this.state.imports || []; const cur = all.find(p => p.id === 'mine');
-    const meals = [...(cur ? cur.meals : []), meal];
-    const known = new Set((cur ? cur.ingredients : []).map(i => i.id));
+    const editing = !!(R.editId && cur && cur.meals.some(x => x.id === R.editId));
+    const meals = editing ? cur.meals.map(x => x.id === R.editId ? meal : x) : [...(cur ? cur.meals : []), meal];
+    const known = new Set((cur ? cur.ingredients : []).map(i => i.id)); const used = new Set(meals.flatMap(x => x.ingredients.map(i => i.id)));
     const rec = { id: 'mine', name: 'My recipes', file: 'Added by hand', manual: true, importedAt: cur ? cur.importedAt : E.todayISO(), kcal: 'your own recipes', meals,
-      ingredients: [...(cur ? cur.ingredients : []), ...out.newIngredients.filter(i => !known.has(i.id))] };
+      ingredients: [...(cur ? cur.ingredients : []), ...out.newIngredients.filter(i => !known.has(i.id))].filter(i => used.has(i.id)) };
     const imports = cur ? all.map(p => p.id === 'mine' ? rec : p) : [...all, rec];
-    this.rebuild(imports); this.save({ imports }); this.setState({ rec: null, tab: 'discover', mode: 'all', q: '', detailId: meal.id, detailServings: 1 }); this.say(`${out.name} saved to My recipes`);
+    this.rebuild(imports); this.save({ imports }); this.setState({ rec: null, tab: 'discover', mode: 'all', q: '', detailId: meal.id, detailServings: 1 }); this.say(editing ? `${out.name} updated` : `${out.name} saved to My recipes`);
   }
   deleteRecipe(id) {
     const all = this.state.imports || []; const cur = all.find(p => p.id === 'mine'); if (!cur) return;
@@ -1677,7 +1687,7 @@ class Component extends DCLogic {
         onAdd: () => this.setState({ picker: { mealId: m.id, day: E.diffDays(st.weekStart, today) >= 0 && E.diffDays(today, E.addDays(st.weekStart, 6)) >= 0 ? E.dayKeyOf(today) : 'mon', slot: m.slot } }),
         onMissing: () => this.missingToShopping(m.id), missingLabel: missN ? `Add ${missN} missing to list` : 'Nothing missing', missingOpacity: missN ? '1' : '0.5',
         onCook: () => this.cook(m.id),
-        isMine: m.plan === 'mine', onDelete: () => this.deleteRecipe(m.id),
+        isMine: m.plan === 'mine', onDelete: () => this.deleteRecipe(m.id), onEdit: () => this.openRecipe(m.id),
       };
     }
 
@@ -1795,14 +1805,14 @@ class Component extends DCLogic {
     if (RC) {
       const setR = patch => this.setState({ rec: { ...this.state.rec, err: null, ...patch } });
       const out = this.I.parseRecipeText(RC.text, idx); const nNew = out.newIngredients.length;
-      recVm = { has: true, expanded: 'true', text: RC.text, onText: e => setR({ text: e.target.value }),
+      recVm = { has: true, expanded: 'true', kicker: RC.editId ? 'My recipes' : 'Saved to My recipes', title: RC.editId ? 'Edit recipe' : 'Write a recipe', saveLabel: RC.editId ? 'Save changes' : 'Save recipe', text: RC.text, onText: e => setR({ text: e.target.value }),
         slots: E.SLOTS.map(s => { const x = sel(RC.slot === s); return { label: E.SLOT_LABEL[s], checked: RC.slot === s ? 'true' : 'false', ...x, onClick: () => setR({ slot: s }) }; }),
         nutrition: [['kcal', 'kcal'], ['protein', 'Protein (g)'], ['fat', 'Fat (g)'], ['carbs', 'Carbs (g)'], ['fibre', 'Fibre (g)']].map(([k, label]) => ({ label, value: RC.n[k], onChange: e => setR({ n: { ...this.state.rec.n, [k]: e.target.value } }) })),
         hasPreview: !!out.name, name: out.name,
         ingSummary: out.ingredients.length ? `${out.ingredients.length} ingredient${out.ingredients.length === 1 ? '' : 's'}${nNew ? ` · ${nNew} new` : ''}` : 'No ingredients yet — add one per line under the name.',
         ings: out.ingredients.map(i => { const isNew = out.newIngredients.some(x => x.id === i.id); return { orig: i.orig, match: isNew ? 'New ingredient' : this.ingName(i.id), fg: isNew ? 'var(--cui-fg-warning)' : 'var(--cui-fg-success)' }; }),
         method: out.instructions ? 'Method: ' + out.instructions : 'No method yet.',
-        hasErr: !!RC.err, err: RC.err || '', onSave: () => this.saveRecipe(), onCancel: () => this.setState({ rec: null }) };
+        hasErr: !!RC.err, err: RC.err || '', onSave: () => this.saveRecipe(), onCancel: () => this.setState({ rec: null, detailId: RC.editId && idx.mealById[RC.editId] ? RC.editId : this.state.detailId }) };
     }
     const cfm = st.confirm;
     return {
