@@ -105,3 +105,48 @@ export function parsePlanText(text, index, planId) {
   }
   return { meals, newIngredients: Object.values(newIngs), warnings };
 }
+
+// Free-text recipe ("Write a recipe" on Discover). First line = name, short lines = ingredients,
+// sentences = method. Optional "Składniki:" / "Ingredients:" and "Przygotowanie:" / "Method:" headings.
+const TO_G = { g: 1, gram: 1, gramy: 1, gramow: 1, dag: 10, kg: 1000, ml: 1, l: 1000 };
+const QTY = '(\\d+(?:[.,]\\d+)?|\\d+\\/\\d+|½|¼|¾|pół|pol)';
+const UNIT = '(kg|dag|gramy|gramów|gramow|gram|g|ml|l|łyżk\\S*|lyzk\\S*|łyżeczk\\S*|lyzeczk\\S*|szczypt\\S*|szklank\\S*|garś\\S*|garsc\\S*|plaster\\S*|plastr\\S*|ząb\\S*|zab\\S*|ząbk\\S*|opakowan\\S*|puszk\\S*|tbsp|tsp|cups?|pinch|handful|slices?|cloves?|pcs|szt\\.?|x)';
+const LEAD = new RegExp(`^${QTY}\\s*${UNIT}?\\.?\\s+(.+)$`, 'i');
+const TRAIL = new RegExp(`^(.+?)\\s*[-–:,]?\\s+${QTY}\\s*${UNIT}?\\.?$`, 'i');
+const ING_HEAD = /^(składniki|skladniki|ingredients)\s*:?\s*$/i;
+const METHOD_HEAD = /^(przygotowanie|sposób przygotowania|sposob przygotowania|wykonanie|method|instructions|directions|preparation)\s*:?\s*/i;
+const qtyNum = s => { s = s.toLowerCase(); if (s === '½' || s === 'pół' || s === 'pol') return 0.5; if (s === '¼') return 0.25; if (s === '¾') return 0.75; if (s.includes('/')) { const [a, b] = s.split('/').map(Number); return b ? a / b : a; } return num(s); };
+const looksLikeSentence = l => /[.!?]$/.test(l) || l.split(/\s+/).length > 8;
+
+export function parseIngredientLine(line) {
+  const orig = line.replace(/^[-•*–]\s*/, '').replace(/\s+/g, ' ').trim();
+  let m = orig.match(LEAD); let q, unit, name;
+  if (m) { q = m[1]; unit = m[2]; name = m[3]; } else if ((m = orig.match(TRAIL))) { name = m[1]; q = m[2]; unit = m[3]; } else name = orig;
+  const count = q != null ? qtyNum(q) : null;
+  const u = unit ? unit.toLowerCase().replace(/\.$/, '') : '';
+  const per = TO_G[normalizeName(u)];
+  const g = count != null && per ? Math.round(count * per * 10) / 10 : 0;
+  return { orig, name: name.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim(), count, unit: per ? 'g' : (u || (count != null ? 'pcs' : '')), g };
+}
+
+export function parseRecipeText(text, index) {
+  const lines = String(text || '').replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean);
+  const name = (lines[0] || '').replace(/^#+\s*/, '').trim();
+  const ingLines = []; const method = []; let mode = 'auto';
+  for (const l of lines.slice(1)) {
+    if (ING_HEAD.test(l)) { mode = 'ing'; continue; }
+    const mh = l.match(METHOD_HEAD);
+    if (mh && (mh[0].trim().endsWith(':') || mh[0].length === l.length)) { mode = 'method'; const rest = l.slice(mh[0].length).trim(); if (rest) method.push(rest); continue; }
+    if (mode === 'method' || (mode === 'auto' && looksLikeSentence(l))) { mode = 'method'; method.push(l.replace(/^\d+[.)]\s*/, '')); continue; }
+    ingLines.push(l);
+  }
+  const newIngs = {};
+  const ingredients = ingLines.map(parseIngredientLine).filter(x => x.name).map(it => {
+    let id = resolveIngredient(index, it.name);
+    const first = normalizeName(it.name).split(' ')[0];
+    if (id && index.byId[id] && normalizeName(index.byId[id].pl.concat(index.byId[id].en).join('|')).indexOf(first) < 0) id = index.alias[normalizeName(it.name)] || null;
+    if (!id) { id = 'x-' + slug(it.name); newIngs[id] = newIngs[id] || { id, en: it.name, pl: [it.name], cat: 'other', diet: '', unknown: true, imported: true }; }
+    return { id, orig: it.orig, count: it.count, unit: it.unit, g: it.g };
+  });
+  return { name, ingredients, instructions: method.map(x => /[.!?:;]$/.test(x) ? x : x + '.').join(' ').replace(/\s+/g, ' ').trim(), newIngredients: Object.values(newIngs) };
+}

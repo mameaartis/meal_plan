@@ -81,7 +81,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
     <p style="margin:0;color:var(--cui-fg-subtle);font-size:17px;text-wrap:pretty">{{ disc.subline }}</p>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <label style="display:inline-flex;align-items:center;gap:8px;border:1px solid var(--cui-border-strong);cursor:pointer;border-radius:999px;padding:8px 16px;font-weight:550;font-size:15px;background:var(--cui-bg-normal)"><img src="icons/add.svg" alt="" style="width:18px;height:18px">Add meals from a PDF<input type="file" accept="application/pdf,.pdf" onChange="{{ onPdf }}" style="display:none"></label>
-      <span style="font-size:13px;color:var(--cui-fg-subtle)">Reads meal plans in the same layout as your dietitian’s.</span>
+      <button onClick="{{ openRecipe }}" aria-expanded="{{ recVm.expanded }}" style="display:inline-flex;align-items:center;gap:8px;border:1px solid var(--cui-border-strong);cursor:pointer;border-radius:999px;padding:8px 16px;font-weight:550;font-size:15px;background:var(--cui-bg-normal)"><img src="icons/add.svg" alt="" style="width:18px;height:18px">Write a recipe</button>
+      <span style="font-size:13px;color:var(--cui-fg-subtle)">PDFs need the same layout as your dietitian’s plans.</span>
     </div>
   </div>
 
@@ -116,6 +117,52 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
         <span style="font-size:13px;color:var(--cui-fg-subtle)">Names and methods stay in the original language. Each imported meal is marked “imported — check against the PDF”.</span>
       </div>
     </sc-if>
+  </div>
+  </sc-if>
+  <sc-if value="{{ recVm.has }}" hint-placeholder-val="{{ false }}">
+  <div role="region" aria-labelledby="rec-title" style="background:var(--cui-bg-subtle);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px;border:1px solid var(--cui-border-strong)">
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:13px;font-weight:650;text-transform:uppercase;letter-spacing:0.04em;color:var(--cui-fg-subtle)">Saved to My recipes</span><b id="rec-title" style="font-size:18px">Write a recipe</b></div>
+      <button onClick="{{ recVm.onCancel }}" aria-label="Close recipe form" style="border:none;background:var(--cui-bg-normal);border-radius:999px;width:36px;height:36px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center"><img src="icons/close.svg" alt="" style="width:18px;height:18px"></button>
+    </div>
+    <label for="rec-text" style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:550">Recipe</span><span id="rec-help" style="font-size:13px;color:var(--cui-fg-subtle)">First line is the name. Then one ingredient per line, with its amount in grams where you can. Sentences after that become the method.</span></label>
+    <textarea id="rec-text" aria-describedby="rec-help" value="{{ recVm.text }}" onChange="{{ recVm.onText }}" rows="9" placeholder="Popcorn paprykowy&#10;25 g popcorn kernels&#10;3 g olive oil&#10;salt&#10;Pop the corn in a covered pot. Season at the end." style="width:100%;resize:vertical;padding:12px;border:1px solid var(--cui-border-normal);border-radius:14px;background:var(--cui-bg-normal);line-height:1.45"></textarea>
+    <div role="radiogroup" aria-label="Meal" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span style="font-weight:550;margin-right:4px">Meal</span>
+      <sc-for list="{{ recVm.slots }}" as="s" hint-placeholder-count="3">
+        <button role="radio" aria-checked="{{ s.checked }}" onClick="{{ s.onClick }}" style="border:1px solid {{ s.border }};cursor:pointer;border-radius:999px;padding:8px 14px;font-weight:550;background:{{ s.bg }};color:{{ s.fg }}">{{ s.label }}</button>
+      </sc-for>
+    </div>
+    <fieldset style="border:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px">
+      <legend style="padding:0;font-weight:550">Nutrition per portion <span style="font-weight:375;color:var(--cui-fg-subtle);font-size:13px">· optional</span></legend>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px">
+        <sc-for list="{{ recVm.nutrition }}" as="n" hint-placeholder-count="5">
+          <label style="display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--cui-fg-subtle)">{{ n.label }}<input type="number" inputmode="decimal" min="0" step="any" value="{{ n.value }}" onChange="{{ n.onChange }}" style="width:100%;padding:8px 10px;border:1px solid var(--cui-border-normal);border-radius:10px;background:var(--cui-bg-normal);color:var(--cui-fg-normal)"></label>
+        </sc-for>
+      </div>
+    </fieldset>
+    <sc-if value="{{ recVm.hasPreview }}" hint-placeholder-val="{{ false }}">
+      <div aria-live="polite" style="background:var(--cui-bg-normal);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px">
+        <span style="font-size:12px;font-weight:650;text-transform:uppercase;letter-spacing:0.04em;color:var(--cui-fg-subtle)">Preview</span>
+        <b style="font-size:17px">{{ recVm.name }}</b>
+        <span style="font-size:13px;color:var(--cui-fg-subtle)">{{ recVm.ingSummary }}</span>
+        <div style="display:flex;flex-direction:column">
+          <sc-for list="{{ recVm.ings }}" as="i" hint-placeholder-count="3">
+            <div style="display:flex;gap:10px;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--cui-border-divider);font-size:14px">
+              <span style="min-width:0;word-break:break-word">{{ i.orig }}</span>
+              <span style="flex-shrink:0;font-size:12px;font-weight:650;color:{{ i.fg }}">{{ i.match }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <span style="font-size:14px;color:var(--cui-fg-subtle);text-wrap:pretty">{{ recVm.method }}</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{ recVm.hasErr }}" hint-placeholder-val="{{ false }}"><div role="alert" style="border-radius:12px;padding:10px 12px;font-size:14px;background:var(--cui-bg-danger);color:var(--cui-fg-danger)">{{ recVm.err }}</div></sc-if>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button onClick="{{ recVm.onSave }}" style="border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550">Save recipe</button>
+      <button onClick="{{ recVm.onCancel }}" style="border:1px solid var(--cui-border-normal);background:transparent;cursor:pointer;border-radius:999px;padding:10px 18px;font-weight:550">Cancel</button>
+      <span style="font-size:13px;color:var(--cui-fg-subtle)">Ingredients not in your documents’ list are saved as new, with diet and FODMAP status unknown.</span>
+    </div>
   </div>
   </sc-if>
   <sc-if value="{{ disc.hasChallenge }}" hint-placeholder-val="{{ false }}">
@@ -893,7 +940,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px">
-        <h3 style="margin:0;font-size:19px;font-weight:650">Method <span style="font-size:13px;font-weight:375;color:var(--cui-fg-subtle)">· original Polish</span></h3>
+        <h3 style="margin:0;font-size:19px;font-weight:650">Method <span style="font-size:13px;font-weight:375;color:var(--cui-fg-subtle)">{{ dt.methodNote }}</span></h3>
         <sc-if value="{{ dt.hasNote }}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:14px;color:var(--cui-fg-warning)">{{ dt.note }}</p></sc-if>
         <p style="margin:0;font-size:15px;line-height:1.55;text-wrap:pretty">{{ dt.instructions }}</p>
       </div>
@@ -902,6 +949,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
         <sc-for list="{{ dt.subs }}" as="s" hint-placeholder-count="1"><p style="margin:0;font-size:14px">{{ s }}</p></sc-for>
         <sc-if value="{{ dt.noSubs }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:14px;color:var(--cui-fg-subtle)">None given in the source. Any swap that might change FODMAP content needs your dietitian’s review.</p></sc-if>
       </div>
+      <sc-if value="{{ dt.isMine }}" hint-placeholder-val="{{ false }}">
+        <div style="border-top:1px solid var(--cui-border-subtle);padding-top:16px"><button onClick="{{ dt.onDelete }}" style="border:1px solid var(--cui-border-danger);color:var(--cui-fg-danger);background:transparent;cursor:pointer;border-radius:999px;padding:9px 16px;font-weight:550">Delete recipe</button></div>
+      </sc-if>
     </div>
     <div style="position:sticky;bottom:0;margin-top:auto;background:var(--cui-bg-normal);border-top:1px solid var(--cui-border-subtle);padding:12px 20px;display:flex;gap:8px;flex-wrap:wrap">
       <button onClick="{{ dt.onAdd }}" style="flex:1;border:none;background:var(--cui-bg-strong);color:var(--cui-fg-on-strong);cursor:pointer;border-radius:999px;padding:11px 16px;font-weight:550">Add to plan</button>
@@ -1057,7 +1107,7 @@ class Component extends DCLogic {
     pantryQ: '', pantryCat: 'all', quick: '',
     plannerTab: 'week', moveFrom: null, slotMenu: null, manualText: '',
     jTab: 'challenge', schedDate: '', logDate: '', logLevel: 'none', guidance: null, fErr: null, skipText: '', reviewNote: '',
-    sym: null, tests: [], backend: '', past: null, symStep: null, imports: [], imp: null, sync: { status: 'local', user: null }, authEmail: '', authPw: '', authMode: 'in', authMsg: null, authBusy: false,
+    sym: null, tests: [], backend: '', past: null, symStep: null, imports: [], imp: null, rec: null, sync: { status: 'local', user: null }, authEmail: '', authPw: '', authMode: 'in', authMsg: null, authBusy: false,
   };
 
   async componentDidMount() {
@@ -1104,7 +1154,7 @@ class Component extends DCLogic {
   }
   rebuild(imports) {
     const B = this.BASE; const imp = imports || [];
-    this.D = { ...B, plans: [...B.plans, ...imp.map(p => ({ id: p.id, name: p.name, title: 'Imported · ' + p.file, file: p.file, kcal: p.kcal, imported: true }))],
+    this.D = { ...B, plans: [...B.plans, ...imp.map(p => ({ id: p.id, name: p.name, title: (p.manual ? '' : 'Imported · ') + p.file, file: p.file, kcal: p.kcal, imported: true, manual: !!p.manual }))],
       meals: [...B.meals, ...imp.flatMap(p => p.meals)], ingredients: [...B.ingredients, ...imp.flatMap(p => p.ingredients).filter((x, i, a) => a.findIndex(y => y.id === x.id) === i && !B.ingredients.some(b => b.id === x.id))] };
     this.idx = this.E.makeIndex(this.D); this.impKey = imp.map(p => p.id).join(',');
   }
@@ -1130,6 +1180,48 @@ class Component extends DCLogic {
     const rec = { id: p.id, name: p.name.trim() || 'Imported plan', file: p.file, importedAt: this.E.todayISO(), kcal: p.kcal, meals, ingredients: p.ingredients.filter(i => used.has(i.id)) };
     const imports = [...(this.state.imports || []), rec];
     this.rebuild(imports); this.save({ imports }); this.setState({ imp: null, tab: 'discover', mode: 'all', q: '' }); this.say(`${meals.length} meals added from ${rec.name}`);
+  }
+  async openRecipe() {
+    if (this.state.rec) return;
+    try {
+      if (!this.I) { const r = this.res || {}; this.I = await import(r.libImporter || (this.base + 'importer.js')); this.I.useEngine(this.E); }
+      this.setState({ rec: { text: '', slot: 'lunch', n: { kcal: '', protein: '', fat: '', carbs: '', fibre: '' }, err: null } });
+    } catch (e) { console.error(e); this.say('Couldn’t open the recipe form: ' + (e && e.message || e)); }
+  }
+  saveRecipe() {
+    const R = this.state.rec; if (!R) return;
+    const out = this.I.parseRecipeText(R.text, this.idx);
+    if (!out.name) return this.setState({ rec: { ...R, err: 'Write the recipe name on the first line.' } });
+    if (!out.ingredients.length) return this.setState({ rec: { ...R, err: 'Add at least one ingredient, one per line under the name (e.g. “25 g popcorn kernels”).' } });
+    const E = this.E; const nv = k => { const v = parseFloat(String(R.n[k]).replace(',', '.')); return isFinite(v) && v >= 0 ? v : null; };
+    const entered = ['kcal', 'protein', 'fat', 'carbs', 'fibre'].filter(k => nv(k) != null);
+    const issues = ['Added by hand. Check the amounts — diet and FODMAP checks use the grams you entered.'];
+    if (entered.length < 5) issues.push(entered.length ? `Nutrition not entered for ${['kcal', 'protein', 'fat', 'carbs', 'fibre'].filter(k => !entered.includes(k)).join(', ')} — shown as 0.` : 'No nutrition entered — shown as 0.');
+    const unknown = out.ingredients.filter(i => out.newIngredients.some(x => x.id === i.id)).map(i => i.orig);
+    if (unknown.length) issues.push(`Not in your existing ingredient list, so diet and FODMAP status are unknown: ${unknown.join(', ')}.`);
+    const noG = out.ingredients.filter(i => !i.g && this.idx.byId[i.id] && this.idx.byId[i.id].portion).map(i => i.orig);
+    if (noG.length) issues.push(`No amount in grams for ${noG.join(', ')}, so FODMAP portion limits couldn’t be checked.`);
+    const slugId = E.normalizeName(out.name).replace(/ /g, '-').slice(0, 30) || 'recipe';
+    const meal = { id: `mine-${slugId}-${Date.now().toString(36)}`, plan: 'mine', day: 'mon', dayIndex: 0, slot: R.slot, origLabel: E.SLOT_LABEL[R.slot].toUpperCase(), time: '', namePl: out.name, nameEn: out.name,
+      nutrition: Object.fromEntries(['kcal', 'protein', 'fat', 'carbs', 'fibre'].map(k => [k, nv(k) || 0])), ingredients: out.ingredients, instructions: out.instructions, servings: 1, servingsNote: '1 portion.', manual: true, issues };
+    const all = this.state.imports || []; const cur = all.find(p => p.id === 'mine');
+    const meals = [...(cur ? cur.meals : []), meal];
+    const known = new Set((cur ? cur.ingredients : []).map(i => i.id));
+    const rec = { id: 'mine', name: 'My recipes', file: 'Added by hand', manual: true, importedAt: cur ? cur.importedAt : E.todayISO(), kcal: 'your own recipes', meals,
+      ingredients: [...(cur ? cur.ingredients : []), ...out.newIngredients.filter(i => !known.has(i.id))] };
+    const imports = cur ? all.map(p => p.id === 'mine' ? rec : p) : [...all, rec];
+    this.rebuild(imports); this.save({ imports }); this.setState({ rec: null, tab: 'discover', mode: 'all', q: '', detailId: meal.id, detailServings: 1 }); this.say(`${out.name} saved to My recipes`);
+  }
+  deleteRecipe(id) {
+    const all = this.state.imports || []; const cur = all.find(p => p.id === 'mine'); if (!cur) return;
+    const m = cur.meals.find(x => x.id === id); if (!m) return;
+    this.ask(`Delete ${m.nameEn}?`, 'It disappears from Discover and from any week you planned it in. This can’t be undone.', 'Delete', () => {
+      const weeks = {};
+      for (const [k, w] of Object.entries(this.state.weeks)) { const nw = JSON.parse(JSON.stringify(w)); for (const d of this.E.DAYS) for (const sl of this.E.SLOTS) if (nw[d] && nw[d][sl] && nw[d][sl].mealId === id) nw[d][sl] = null; weeks[k] = nw; }
+      const meals = cur.meals.filter(x => x.id !== id); const used = new Set(meals.flatMap(x => x.ingredients.map(i => i.id)));
+      const imports = meals.length ? all.map(p => p.id === 'mine' ? { ...cur, meals, ingredients: cur.ingredients.filter(i => used.has(i.id)) } : p) : all.filter(p => p.id !== 'mine');
+      this.setState({ detailId: null }); this.rebuild(imports); this.save({ imports, weeks }); this.say(`${m.nameEn} deleted`);
+    });
   }
   blankSym() { return { at: nowLocal(), mealId: '', bloating: 0, gas: 0, pain: 0, stool: '', diarrhea: false, stress: false, other: '', notes: '' }; }
   save(patch, cb) { this.setState(patch, () => { for (const k of Object.keys(patch)) if (PERSIST.includes(k)) this.S.set(k, this.state[k]); cb && cb(); }); }
@@ -1532,7 +1624,7 @@ class Component extends DCLogic {
     const dietCount = k => D.meals.filter(m => E.dietAssess(m, idx, st.settings).status === k).length;
     const passed = st.tests.filter(t => t.pass).length;
     const rv = {
-      plans: [...D.plans.map(p => ({ kicker: p.name, title: p.title, sub: `${D.meals.filter(m => m.plan === p.id).length} ${p.manual ? 'snacks' : 'meals'} · ${p.kcal}`, file: p.file + (p.note ? ' — ' + p.note : '') })),
+      plans: [...D.plans.map(p => ({ kicker: p.name, title: p.title, sub: `${D.meals.filter(m => m.plan === p.id).length} ${p.id === 'mine' ? 'recipes' : p.manual ? 'snacks' : 'meals'} · ${p.kcal}`, file: p.file + (p.note ? ' — ' + p.note : '') })),
         { kicker: 'Reintroduction', title: '7 FODMAP categories · 10 foods', sub: 'Doses, test recipes, rules', file: D.protocol.file }, { kicker: 'Recommendations', title: 'Low-FODMAP · 1,800 kcal', sub: `Food table for ${D.ingredients.filter(i => i.table).length} ingredients, triggers, stages, supplements`, file: D.guidance.file }],
       issues: D.issues.map(i => ({ ...i, sev: { conflict: 'Conflict', review: 'Review', missing: 'Missing', info: 'Note' }[i.sev], bg: TONE[i.sev][0], fg: TONE[i.sev][1] })),
       protocol: D.protocol.steps.map((s, i) => ({ n: String(i + 1), cat: D.protocol.categories[s.category].label, product: `${s.product} (${s.productPl})`, doses: s.doses.map((d, j) => `D${j + 1} ${d.text}`).join(' · ') + ' · D4 optional', hasNote: !!(s.doseConflict || s.needsConfirm), note: s.doseConflict ? 'Dose table and recipe disagree' : s.needsConfirm ? 'Second food in group — confirm' : '' })),
@@ -1568,7 +1660,7 @@ class Component extends DCLogic {
       const n = m.nutrition, f = scale * (m.servings || 1) / (m.servings || 1);
       dt = {
         source: m.manual ? `${plan.name} · added by hand` : `${plan.name} · ${E.DAY_LABEL[m.day]} (${E.DAY_PL[m.day]}) · ${m.origLabel.charAt(0) + m.origLabel.slice(1).toLowerCase()} ${m.time}`,
-        slotLabel: E.SLOT_LABEL[m.slot], name: m.nameEn, namePl: m.namePl, photoEl: this.photoEl(m, 1200, 750, false),
+        slotLabel: E.SLOT_LABEL[m.slot], name: m.nameEn, namePl: m.namePl === m.nameEn ? '' : m.namePl, methodNote: m.plan === 'mine' ? '' : '· original Polish', photoEl: this.photoEl(m, 1200, 750, false),
         dietLabel: diet.label, dietBg: TONE[diet.status][0], dietFg: TONE[diet.status][1], fodLabel: fod.label, fodBg: TONE[fod.status][0], fodFg: TONE[fod.status][1],
         nutrition: [['kcal', n.kcal], ['protein', n.protein + ' g'], ['fat', n.fat + ' g'], ['carbs', n.carbs + ' g'], ['fibre', n.fibre + ' g']].map(([label, value]) => ({ label: label + (sv > 1 ? ' · 1 portion' : ''), value: String(value) })),
         servings: String(sv), less: () => this.setState({ detailServings: Math.max(1, sv - 1) }), more: () => this.setState({ detailServings: Math.min(12, sv + 1) }),
@@ -1579,12 +1671,13 @@ class Component extends DCLogic {
         availText: a.canMake ? 'You have everything' : `Missing ${a.missingCount} of ${a.total}`, availFg: a.canMake ? TONE.ok[1] : TONE.conflict[1],
         ingredients: m.ingredients.map(ri => { const it = a.items.find(x => x.id === ri.id) || { status: 'have' };
           const stx = ri.id === 'water' ? ['Not tracked', 'var(--cui-fg-subtle)', 'var(--cui-bg-neutral-strong)'] : { have: ['In pantry', TONE.ok[1], TONE.ok[1]], 'have-uncounted': ['In pantry (pcs)', TONE.ok[1], TONE.ok[1]], short: [`Have ${g(it.haveQty)}`, TONE.review[1], TONE.review[1]], missing: ['Missing', TONE.conflict[1], TONE.conflict[1]] }[it.status];
-          return { name: this.ingName(ri.id) + (ri.variant === 'green' ? ' (green)' : ''), orig: `${ri.orig} · ${String(ri.count).replace('.', ',')} × ${ri.unit}`, qty: g(ri.g * scale), status: stx[0], statusFg: stx[1], dot: stx[2] }; }),
+          return { name: this.ingName(ri.id) + (ri.variant === 'green' ? ' (green)' : ''), orig: m.plan === 'mine' ? ri.orig : `${ri.orig} · ${String(ri.count).replace('.', ',')} × ${ri.unit}`, qty: !ri.g && ri.count == null && m.plan === 'mine' ? 'as needed' : ri.g || ri.count == null ? g(ri.g * scale) : `${String(Math.round(ri.count * scale * 100) / 100).replace('.', ',')} ${ri.unit}`, status: stx[0], statusFg: stx[1], dot: stx[2] }; }),
         hasNote: !!m.note, note: m.note || '', instructions: m.instructions || 'No method given in the source.',
         subs: (m.substitutions || []).map(s => s.text), noSubs: !(m.substitutions || []).length,
         onAdd: () => this.setState({ picker: { mealId: m.id, day: E.diffDays(st.weekStart, today) >= 0 && E.diffDays(today, E.addDays(st.weekStart, 6)) >= 0 ? E.dayKeyOf(today) : 'mon', slot: m.slot } }),
         onMissing: () => this.missingToShopping(m.id), missingLabel: missN ? `Add ${missN} missing to list` : 'Nothing missing', missingOpacity: missN ? '1' : '0.5',
         onCook: () => this.cook(m.id),
+        isMine: m.plan === 'mine', onDelete: () => this.deleteRecipe(m.id),
       };
     }
 
@@ -1692,15 +1785,28 @@ class Component extends DCLogic {
           onToggle: () => { const ms = [...meals]; ms[i] = { ...m, excluded: !m.excluded }; this.setState({ imp: { ...IM, meals: ms } }); } })),
         saveLabel: `Add ${kept} meal${kept === 1 ? '' : 's'} to my meals`, saveOpacity: kept ? '1' : '0.5', onSave: () => this.saveImport(), onCancel: () => this.setState({ imp: null }) };
     }
-    const importedList = (st.imports || []).map(p => ({ name: p.name, sub: `${p.meals.length} meals · ${p.file} · imported ${E.fmtDate(p.importedAt)}`,
+    const importedList = (st.imports || []).map(p => ({ name: p.name, sub: p.manual ? `${p.meals.length} recipe${p.meals.length === 1 ? '' : 's'} · ${p.file}` : `${p.meals.length} meals · ${p.file} · imported ${E.fmtDate(p.importedAt)}`,
       onRemove: () => this.ask(`Remove ${p.name}?`, 'Its meals disappear from Discover. Planned meals from it will be removed from your weeks.', 'Remove', () => {
         const ids = new Set(p.meals.map(m => m.id)); const weeks = {};
         for (const [k, w] of Object.entries(this.state.weeks)) { const nw = JSON.parse(JSON.stringify(w)); for (const d of E.DAYS) for (const sl of E.SLOTS) if (nw[d] && nw[d][sl] && ids.has(nw[d][sl].mealId)) nw[d][sl] = null; weeks[k] = nw; }
         const imports = this.state.imports.filter(x => x.id !== p.id); this.rebuild(imports); this.save({ imports, weeks }); this.say(`${p.name} removed`);
       }) }));
+    const RC = st.rec; let recVm = { has: false, expanded: 'false' };
+    if (RC) {
+      const setR = patch => this.setState({ rec: { ...this.state.rec, err: null, ...patch } });
+      const out = this.I.parseRecipeText(RC.text, idx); const nNew = out.newIngredients.length;
+      recVm = { has: true, expanded: 'true', text: RC.text, onText: e => setR({ text: e.target.value }),
+        slots: E.SLOTS.map(s => { const x = sel(RC.slot === s); return { label: E.SLOT_LABEL[s], checked: RC.slot === s ? 'true' : 'false', ...x, onClick: () => setR({ slot: s }) }; }),
+        nutrition: [['kcal', 'kcal'], ['protein', 'Protein (g)'], ['fat', 'Fat (g)'], ['carbs', 'Carbs (g)'], ['fibre', 'Fibre (g)']].map(([k, label]) => ({ label, value: RC.n[k], onChange: e => setR({ n: { ...this.state.rec.n, [k]: e.target.value } }) })),
+        hasPreview: !!out.name, name: out.name,
+        ingSummary: out.ingredients.length ? `${out.ingredients.length} ingredient${out.ingredients.length === 1 ? '' : 's'}${nNew ? ` · ${nNew} new` : ''}` : 'No ingredients yet — add one per line under the name.',
+        ings: out.ingredients.map(i => { const isNew = out.newIngredients.some(x => x.id === i.id); return { orig: i.orig, match: isNew ? 'New ingredient' : this.ingName(i.id), fg: isNew ? 'var(--cui-fg-warning)' : 'var(--cui-fg-success)' }; }),
+        method: out.instructions ? 'Method: ' + out.instructions : 'No method yet.',
+        hasErr: !!RC.err, err: RC.err || '', onSave: () => this.saveRecipe(), onCancel: () => this.setState({ rec: null }) };
+    }
     const cfm = st.confirm;
     return {
-      ...base, syncVm, imVm, importedList, hasImported: importedList.length > 0, onPdf: e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; this.readPdf(f); }, disc, pan, pl, shop, fj, gd, rv, ps, hasPast: !!st.past, closePast: () => this.setState({ past: null }), dt, pk, sm, sym: symVm,
+      ...base, syncVm, imVm, recVm, openRecipe: () => this.openRecipe(), importedList, hasImported: importedList.length > 0, onPdf: e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; this.readPdf(f); }, disc, pan, pl, shop, fj, gd, rv, ps, hasPast: !!st.past, closePast: () => this.setState({ past: null }), dt, pk, sm, sym: symVm,
       q: st.q, onQ: e => this.setState({ q: e.target.value }), maxTimeStr: String(st.maxTime), onMaxTime: e => this.setState({ maxTime: Number(e.target.value) }),
       sortStr: st.sortBy, onSort: e => this.setState({ sortBy: e.target.value }), minProteinStr: String(st.minProtein), onMinProtein: e => this.setState({ minProtein: Number(e.target.value) }), dietOnly: st.dietOnly, onDietOnly: e => this.setState({ dietOnly: e.target.checked }),
       quick: st.quick, onQuick: e => this.setState({ quick: e.target.value }), pantryQ: st.pantryQ, onPantryQ: e => this.setState({ pantryQ: e.target.value }),
